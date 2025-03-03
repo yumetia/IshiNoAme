@@ -81,7 +81,7 @@ class App:
         pyxel.text(SCREEN_WIDTH//10,SCREEN_HEIGHT//10,"Click to Start",pyxel.COLOR_RED)
 
     def draw_play_scene(self):
-        pyxel.blt(0,0,0,32,0,160,120)
+        pyxel.blt(0,0,1,8,0,128,128)
         # game over
         if self.is_colliding:
             self.game_over_timer+=1
