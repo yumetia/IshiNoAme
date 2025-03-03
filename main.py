@@ -3,38 +3,44 @@ import pyxel
 SCREEN_WIDTH = 160
 SCREEN_HEIGHT = 120
 STONE_INTERVAL = 5
-
+START_SCENE = "start"
+PLAY_SCENE = "play"
 
 class Stone:
     def __init__(self,x,y):
         self.x=x
         self.y=y
-    
+
     def update(self):
-        self.y+=2
+        self.y+=1
+
     def draw(self):
         # 石
         pyxel.blt(self.x,self.y,0,8,0,8,8,pyxel.COLOR_BLACK)
 
 
 class App:
+
     def __init__(self):
         pyxel.init(SCREEN_WIDTH,SCREEN_HEIGHT,title="石の雨")
-        pyxel.mouse(True)
         pyxel.load("my_resource.pyxres")
+        pyxel.mouse(True)
+        self.current_scene = START_SCENE
+        self.is_colliding = False
+        self.game_over_timer = 0
 
         self.player_x = SCREEN_WIDTH // 2
         self.player_y = SCREEN_HEIGHT*4//5
         
         self.stones=[]
-        self.is_colliding = False
-        self.game_over_timer = 0
 
         pyxel.run(self.update,self.draw)
 
-    def update(self):
-        if pyxel.btnp(pyxel.KEY_ESCAPE):
-            pyxel.quit()
+    def update_start_scene(self):
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            self.current_scene = PLAY_SCENE
+
+    def update_play_scene(self):
         # x
         if pyxel.btn(pyxel.KEY_LEFT) and self.player_x > - 4 :
             self.player_x -=1
@@ -58,23 +64,42 @@ class App:
             
             if stone.y>=SCREEN_HEIGHT:
                 self.stones.remove(stone)
-            print(len(self.stones))
+        
+    def update(self):
+        if pyxel.btnp(pyxel.KEY_ESCAPE):
+            pyxel.quit()
+        
+        if self.current_scene==START_SCENE:
+            self.update_start_scene()
+
+        elif self.current_scene==PLAY_SCENE:
+            self.update_play_scene()
 
 
-    def draw(self):
-        pyxel.cls(pyxel.COLOR_GREEN)
+    def draw_start_scene(self):
+        pyxel.blt(0,0,0,32,0,160,120)
+        pyxel.text(SCREEN_WIDTH//10,SCREEN_HEIGHT//10,"Click to Start",pyxel.COLOR_RED)
 
+    def draw_play_scene(self):
+        pyxel.blt(0,0,0,32,0,160,120)
+        # game over
+        if self.is_colliding:
+            self.game_over_timer+=1
+            pyxel.text(SCREEN_WIDTH//2,SCREEN_HEIGHT//2,"GAME OVER",pyxel.COLOR_RED)
+            if self.game_over_timer>30:
+                self.draw_start_scene()
+                return
         # stones
         for stone in self.stones:
             stone.draw()
 
         # player
         pyxel.blt(self.player_x,self.player_y,0,16,0,16,16,pyxel.COLOR_BLACK)
-        # game over
-        if self.is_colliding:
-            self.game_over_timer+=1
-            pyxel.text(SCREEN_WIDTH//2,SCREEN_HEIGHT//2,"GAME OVER",pyxel.COLOR_RED)
-            if self.game_over_timer>30:
-                pyxel.quit()
+
+    def draw(self):
+        if self.current_scene==START_SCENE:
+            self.draw_start_scene()
+        elif self.current_scene==PLAY_SCENE:
+            self.draw_play_scene()
 
 App()
