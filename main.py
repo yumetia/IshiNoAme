@@ -32,6 +32,7 @@ class App:
 
     def reset_play_scene(self):
         self.is_colliding = False
+        self.score = 0
         self.game_over_timer = 60
 
         self.player_x = SCREEN_WIDTH // 2
@@ -48,7 +49,9 @@ class App:
         # Game over ?
         if self.is_colliding:
             return
-        
+        # score
+        self.score+=1
+
         # x
         if pyxel.btn(pyxel.KEY_LEFT) and self.player_x > - 4 :
             self.player_x -=1
@@ -95,6 +98,7 @@ class App:
 
     def draw_play_scene(self):
         pyxel.blt(0,0,1,0,0,160,120)
+        pyxel.text(2,2,f"{self.score}",pyxel.COLOR_GREEN)
         # game over
         if self.is_colliding:
             self.game_over_timer-=1
