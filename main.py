@@ -24,7 +24,6 @@ class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH,SCREEN_HEIGHT,title="石の雨")
         pyxel.load("my_resource.pyxres")
-        pyxel.mouse(True)
         
         self.current_scene = START_SCENE
         
@@ -95,7 +94,7 @@ class App:
 
 
     def draw_play_scene(self):
-        pyxel.blt(0,0,1,8,0,128,128)
+        pyxel.blt(0,0,1,0,0,160,120)
         # game over
         if self.is_colliding:
             self.game_over_timer-=1
