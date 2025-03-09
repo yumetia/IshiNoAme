@@ -12,7 +12,7 @@ class Stone:
         self.y=y
 
     def update(self):
-        self.y+=1
+        self.y+=4
 
     def draw(self):
         # 石
