@@ -1,6 +1,5 @@
-# player.py
 import pyxel
-from settings import SCREEN_WIDTH, PLAYER_SPEED
+from settings import SCREEN_WIDTH,SCREEN_HEIGHT, PLAYER_SPEED
 
 class Player:
     def __init__(self):
@@ -8,14 +7,14 @@ class Player:
         self.y = SCREEN_WIDTH // 2
 
     def move(self):
-        if pyxel.btn(pyxel.KEY_LEFT) and self.x > -4:
+        if pyxel.btn(pyxel.KEY_LEFT) and self.x >0 :
             self.x -= PLAYER_SPEED
-        elif pyxel.btn(pyxel.KEY_RIGHT) and self.x < SCREEN_WIDTH - 12:
+        elif pyxel.btn(pyxel.KEY_RIGHT) and self.x < SCREEN_WIDTH-18 :
             self.x += PLAYER_SPEED
 
         if pyxel.btn(pyxel.KEY_UP):
             self.y -= PLAYER_SPEED
-        elif pyxel.btn(pyxel.KEY_DOWN):
+        elif pyxel.btn(pyxel.KEY_DOWN) and self.y < SCREEN_HEIGHT-18:
             self.y += PLAYER_SPEED
 
     def draw(self):

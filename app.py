@@ -1,9 +1,9 @@
 # app.py
 import pyxel
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE,LEADERBOARD_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
-from scenes import draw_start_scene, draw_game_over
+from scenes import draw_start_scene, draw_game_over,draw_leaderboard
 
 class App:
     def __init__(self):
@@ -25,8 +25,11 @@ class App:
         self.current_scene = PLAY_SCENE
 
     def update_start_scene(self):
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) or pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.reset_play_scene()
+        elif pyxel.btnp(pyxel.KEY_L):
+            self.current_scene = LEADERBOARD_SCENE
+            
 
     def update_play_scene(self):
         if self.is_colliding:
@@ -50,6 +53,10 @@ class App:
             if stone.y >= SCREEN_HEIGHT:
                 self.stones.remove(stone)
 
+    def update_leaderboard_scene(self):
+        pyxel.cls(pyxel.COLOR_YELLOW)
+        pyxel.text(2, 2, "Leaderboard", pyxel.COLOR_DARK_BLUE)
+
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
@@ -58,22 +65,25 @@ class App:
             self.update_start_scene()
         elif self.current_scene == PLAY_SCENE:
             self.update_play_scene()
+        elif self.current_scene == LEADERBOARD_SCENE:
+            self.update_leaderboard_scene()
 
     def draw(self):
-        pyxel.cls(eval(PLAY_SCREEN_COLOR))
-        pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_GREEN)
 
         if self.current_scene == START_SCENE:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
+            pyxel.cls(eval(PLAY_SCREEN_COLOR))
+            pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_GREEN)
             if self.is_colliding:
                 self.game_over_timer -= 1
                 draw_game_over()
                 if self.game_over_timer < 30:
                     self.current_scene = START_SCENE
                 return
-
             for stone in self.stones:
                 stone.draw()
-
             self.player.draw()
+
+        elif self.current_scene == LEADERBOARD_SCENE:
+            draw_leaderboard()
