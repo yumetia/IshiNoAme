@@ -1,17 +1,18 @@
 # app.py
 import pyxel
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE,LEADERBOARD_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE,LEADERBOARD_SCENE,NAME_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
-from scenes import draw_start_scene, draw_game_over,draw_leaderboard
+from scenes import draw_username_scene,draw_start_scene, draw_game_over,draw_leaderboard
 
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
 
-        self.current_scene = START_SCENE
+        self.current_scene = NAME_SCENE
         self.score = 0
+        self.name = ""
         pyxel.run(self.update, self.draw)
 
     def reset_play_scene(self):
@@ -54,23 +55,37 @@ class App:
                 self.stones.remove(stone)
 
     def update_leaderboard_scene(self):
-        pyxel.cls(pyxel.COLOR_YELLOW)
-        pyxel.text(2, 2, "Leaderboard", pyxel.COLOR_DARK_BLUE)
+        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
+            self.current_scene = START_SCENE
+    
+    def update_username_scene(self):
+        
+        # get the name of the user before starting the game
+        for key in range(pyxel.KEY_A,pyxel.KEY_Z):
+            if pyxel.btnp(key):
+                self.name+=chr(key)
+
+        if pyxel.btnp(pyxel.KEY_RETURN) and 3<= len(self.name)< 10:
+            self.current_scene = START_SCENE
+        
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
 
-        if self.current_scene == START_SCENE:
+        if self.current_scene == NAME_SCENE:
+            self.update_username_scene()
+        elif self.current_scene == START_SCENE:
             self.update_start_scene()
-        elif self.current_scene == PLAY_SCENE:
-            self.update_play_scene()
         elif self.current_scene == LEADERBOARD_SCENE:
             self.update_leaderboard_scene()
+        elif self.current_scene == PLAY_SCENE:
+            self.update_play_scene()
 
     def draw(self):
-
-        if self.current_scene == START_SCENE:
+        if self.current_scene == NAME_SCENE:
+            draw_username_scene(self.name)
+        elif self.current_scene == START_SCENE:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
             pyxel.cls(eval(PLAY_SCREEN_COLOR))
