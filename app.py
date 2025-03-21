@@ -12,7 +12,8 @@ class App:
 
         self.current_scene = NAME_SCENE
         self.score = 0
-        self.step_speed = 50
+        self.step_speed = 30
+        self.stone_interval = STONE_INTERVAL
         self.name = ""
         pyxel.run(self.update, self.draw)
 
@@ -38,15 +39,18 @@ class App:
             return
 
         self.score += 1
-        print(self.score)
-        if self.score > self.step_speed:
-            self.stone_speed += 0.1
-            self.step_speed+=50
-            print("ok speed up !!")
+
+        if self.score>self.step_speed:
+            self.step_speed+=30 
+            if self.score<3000:
+                self.stone_speed += 0.05
+            elif self.stone_interval > 5:            
+                self.stone_interval-=1
+                print("ok speed up !!")
 
         self.player.move()
 
-        if pyxel.frame_count % STONE_INTERVAL == 0:
+        if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
 
         for stone in self.stones.copy():
