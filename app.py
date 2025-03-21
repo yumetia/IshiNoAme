@@ -12,6 +12,7 @@ class App:
 
         self.current_scene = NAME_SCENE
         self.score = 0
+        self.step_speed = 50
         self.name = ""
         pyxel.run(self.update, self.draw)
 
@@ -37,8 +38,11 @@ class App:
             return
 
         self.score += 1
-        if pyxel.frame_count < 1000:
-            self.stone_speed += 0.005
+        print(self.score)
+        if self.score > self.step_speed:
+            self.stone_speed += 0.1
+            self.step_speed+=50
+            print("ok speed up !!")
 
         self.player.move()
 
@@ -62,10 +66,11 @@ class App:
         
         # get the name of the user before starting the game
         for key in range(pyxel.KEY_A,pyxel.KEY_Z):
-            if pyxel.btnp(key):
+            
+            if pyxel.btnp(key) and len(self.name)<15:
                 self.name+=chr(key)
 
-        if pyxel.btnp(pyxel.KEY_RETURN) and 3<= len(self.name)< 10:
+        if pyxel.btnp(pyxel.KEY_RETURN) and len(self.name)>3:
             self.current_scene = START_SCENE
         
 
