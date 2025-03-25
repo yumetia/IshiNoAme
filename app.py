@@ -9,7 +9,7 @@ class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
-
+        
         self.current_scene = NAME_SCENE
         self.score = 0
         self.step_speed = 30
@@ -38,7 +38,7 @@ class App:
         if self.is_colliding:
             return
 
-        self.score += 1
+        self.score += 5
 
         if self.score>self.step_speed:
             self.step_speed+=30 
@@ -46,7 +46,6 @@ class App:
                 self.stone_speed += 0.05
             elif self.stone_interval > 5:            
                 self.stone_interval-=1
-                print("ok speed up !!")
 
         self.player.move()
 
@@ -67,12 +66,21 @@ class App:
             self.current_scene = START_SCENE
     
     def update_username_scene(self):
-        
         # get the name of the user before starting the game
-        for key in range(pyxel.KEY_A,pyxel.KEY_Z):
+        for attr in dir(pyxel):
+            if attr.startswith("KEY_"):
+                keycode = getattr(pyxel, attr)
+                # Check if the key corresponding to keycode is pressed
+                if pyxel.btnp(pyxel.KEY_BACKSPACE):
+                    self.name = self.name[:-1]
+                elif(pyxel.btnp(keycode)):
+                    try:
+                        # Convert the key code to an ASCII character and append it to the name
+                        self.name += chr(keycode)
+                    except ValueError:
+                        print("Key code does not correspond to a valid ASCII character.")
+
             
-            if pyxel.btnp(key) and len(self.name)<15:
-                self.name+=chr(key)
 
         if pyxel.btnp(pyxel.KEY_RETURN) and len(self.name)>3:
             self.current_scene = START_SCENE
@@ -97,7 +105,10 @@ class App:
         elif self.current_scene == START_SCENE:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
-            pyxel.cls(eval(PLAY_SCREEN_COLOR))
+            if self.score>4000:
+                pyxel.cls(pyxel.COLOR_DARK_BLUE)
+            else:
+                pyxel.cls(eval(PLAY_SCREEN_COLOR))
             pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_GREEN)
             if self.is_colliding:
                 self.game_over_timer -= 1
