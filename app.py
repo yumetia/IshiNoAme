@@ -1,9 +1,11 @@
 # app.py
-import pyxel
+from curses import KEY_BACKSPACE
+import pyxel # type: ignore
+
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE,LEADERBOARD_SCENE,NAME_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
-from scenes import draw_username_scene,draw_start_scene, draw_game_over,draw_leaderboard
+from scenes import draw_name_scene, draw_start_scene, draw_game_over, draw_leaderboard
 
 class App:
     def __init__(self):
@@ -14,7 +16,9 @@ class App:
         self.score = 0
         self.step_speed = 30
         self.stone_interval = STONE_INTERVAL
-        self.name = ""
+
+        self.username = ""
+
         pyxel.run(self.update, self.draw)
 
     def reset_play_scene(self):
@@ -38,14 +42,14 @@ class App:
         if self.is_colliding:
             return
 
-        self.score += 5
+        self.score += 1
 
         if self.score>self.step_speed:
             self.step_speed+=30 
             if self.score<3000:
                 self.stone_speed += 0.05
             elif self.stone_interval > 5:            
-                self.stone_interval-=1
+                self.stone_interval-= 1
 
         self.player.move()
 
@@ -65,33 +69,33 @@ class App:
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
     
-    def update_username_scene(self):
-        # get the name of the user before starting the game
+    def update_name_scene(self):
+        # Process regular keys to append characters
         for attr in dir(pyxel):
-            if attr.startswith("KEY_"):
+            if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
                 keycode = getattr(pyxel, attr)
-                # Check if the key corresponding to keycode is pressed
-                if pyxel.btnp(pyxel.KEY_BACKSPACE):
-                    self.name = self.name[:-1]
-                elif(pyxel.btnp(keycode)):
+                if pyxel.btnp(keycode):
                     try:
-                        # Convert the key code to an ASCII character and append it to the name
-                        self.name += chr(keycode)
+                        self.username += chr(keycode)
                     except ValueError:
                         print("Key code does not correspond to a valid ASCII character.")
-
-            
-
-        if pyxel.btnp(pyxel.KEY_RETURN) and len(self.name)>3:
-            self.current_scene = START_SCENE
         
+        # Process backspace (remove last character) once per update
+        if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
+            self.username = self.username[:-1]
+            print(self.username)
+        
+        # Process return key to change scene if the username is long enough
+        if pyxel.btnp(pyxel.KEY_RETURN) and len(self.username) > 2:
+            self.current_scene = START_SCENE
 
+        
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
 
         if self.current_scene == NAME_SCENE:
-            self.update_username_scene()
+            self.update_name_scene()
         elif self.current_scene == START_SCENE:
             self.update_start_scene()
         elif self.current_scene == LEADERBOARD_SCENE:
@@ -99,13 +103,15 @@ class App:
         elif self.current_scene == PLAY_SCENE:
             self.update_play_scene()
 
+    
+        
     def draw(self):
         if self.current_scene == NAME_SCENE:
-            draw_username_scene(self.name)
+            draw_name_scene(self.username)
         elif self.current_scene == START_SCENE:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
-            if self.score>4000:
+            if self.score>3000:
                 pyxel.cls(pyxel.COLOR_DARK_BLUE)
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
