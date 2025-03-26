@@ -2,6 +2,8 @@
 import pyxel # type: ignore
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
+from database import get_top_players
+
 def draw_name_scene(username):
     pyxel.cls(0)
     pyxel.text(SCREEN_WIDTH // 10 , SCREEN_HEIGHT // 5, f'Your name:{username}' , pyxel.COLOR_WHITE)
@@ -19,6 +21,12 @@ def draw_game_over():
 
 def draw_leaderboard():
     pyxel.cls(0)  
-    # db connect and handle
     pyxel.text(10, 10, "LEADERBOARD", pyxel.COLOR_WHITE)
-    pyxel.text(10, 20, "Press ENTER to return", pyxel.COLOR_YELLOW)
+    # get the top 5 and print each one 
+    records = get_top_players()
+    y = 10
+    for i,(username,score) in enumerate(records):
+        pyxel.text(10,y+(10), f'{i} : {str(username)} {str(score)}',pyxel.COLOR_CYAN)
+        y+=10
+
+    pyxel.text(10, SCREEN_HEIGHT-(10), "Press ENTER to return", pyxel.COLOR_YELLOW)
