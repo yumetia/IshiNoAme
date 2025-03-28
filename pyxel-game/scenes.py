@@ -22,9 +22,8 @@ def draw_leaderboard(data):
     pyxel.cls(0)  
     pyxel.text(10, 10, "LEADERBOARD", pyxel.COLOR_WHITE)
     # get the top 5 and print each one 
-    records = data
     y = 10
-    for i,(username,score) in enumerate(records):
+    for i,(username,score) in enumerate(data):
         pyxel.text(10,y+(10), f'{i} : {str(username)} {str(score)}',pyxel.COLOR_CYAN)
         y+=10
 

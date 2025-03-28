@@ -1,5 +1,5 @@
 // api.js
-const API_URL = "url...";
+const API_URL = "https://ishinoame.onrender.com";
 
 let pyxelLeaderboardData = [];
 
@@ -14,24 +14,29 @@ function sendScore(username, score) {
   })
   .then(response => response.json())
   .then(data => {
-    console.log("Score envoyé :", data);
+    console.log("Score received :", data);
   })
   .catch(error => {
-    console.error("Erreur lors de l'envoi du score :", error);
+    console.error("Erreur sending the score :", error);
   });
 }
 
 
 function fetchLeaderboard() {
   fetch(`${API_URL}/top`)
-    .then(response => response.json())
-    .then(data => {
-      pyxelLeaderboardData = data;
-      console.log("Leaderboard récupéré :", data);
-    })
-    .catch(error => {
-      console.error("Erreur lors de la récupération du leaderboard :", error);
-    });
+  .then(response => response.json())
+  .then(data => {
+    pyxelLeaderboardData = data;
+    console.log("Leaderboard received :", data);
+  })
+  .catch(error => {
+    console.error("Erreur getting leaderboard :", error);
+  });
+}
+
+function getLeaderboard(){
+  return pyxelLeaderboardData;
 }
 
 fetchLeaderboard();
+pyxel.register("get_leaderboard", get_leaderboard);

@@ -66,6 +66,12 @@ class App:
 
     def update_leaderboard_scene(self):
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
+            try:
+                from js import pyxel
+                self.leaderboard = pyxel.call("get_leaderboard")
+            except Exception as e:
+                print("Erreur récupération leaderboard depuis JS:", e)
+
             self.current_scene = START_SCENE
     
     def update_name_scene(self):
@@ -125,4 +131,4 @@ class App:
             self.player.draw()
 
         elif self.current_scene == LEADERBOARD_SCENE:
-            draw_leaderboard()
+            draw_leaderboard(self.leaderboard)
