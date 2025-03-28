@@ -57,7 +57,6 @@ def update_score(username, new_score):
     conn.close()
 
 
-
 def get_top_players(limit=5):
     conn = connect()
     cursor = conn.cursor()
@@ -70,4 +69,3 @@ def get_top_players(limit=5):
     results = cursor.fetchall()
     conn.close()
     return results
-

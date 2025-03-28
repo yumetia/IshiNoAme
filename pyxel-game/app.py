@@ -7,8 +7,6 @@ from stone import Stone
 from player import Player
 from scenes import draw_name_scene, draw_start_scene, draw_game_over, draw_leaderboard
 
-from database import create_table,insert_player,update_score
-
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
@@ -18,7 +16,6 @@ class App:
         self.step_speed = 30
         self.stone_interval = STONE_INTERVAL
 
-        create_table()
         self.username = ""
 
         pyxel.run(self.update, self.draw)
@@ -42,7 +39,6 @@ class App:
 
     def update_play_scene(self):
         if self.is_colliding:
-            update_score(self.username,self.score)
             return
 
         self.score += 10
@@ -90,7 +86,6 @@ class App:
         
         # Process return key to change scene if the username is long enough
         if pyxel.btnp(pyxel.KEY_RETURN) and len(self.username) > 2:
-            insert_player(self.username)
             self.current_scene = START_SCENE
 
         
@@ -107,8 +102,7 @@ class App:
         elif self.current_scene == PLAY_SCENE:
             self.update_play_scene()
 
-    
-        
+      
     def draw(self):
         if self.current_scene == NAME_SCENE:
             draw_name_scene(self.username)
