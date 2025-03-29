@@ -1,0 +1,9 @@
+{
+  "app": "app.py",
+  "title": "石の雨",
+  "width": 160,
+  "height": 120,
+  "scale": 4,
+  "fps": 30,
+  "capture_scale": 2
+}
