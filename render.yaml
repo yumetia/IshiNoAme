@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: pyxel-leaderboard-api
-    env: python
-    buildCommand: "pip install -r pyxel-api/requirements.txt"
-    startCommand: "python pyxel-api/api.py"
-    rootDir: .
