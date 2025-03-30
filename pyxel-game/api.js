@@ -39,4 +39,4 @@ function getLeaderboard(){
 }
 
 fetchLeaderboard();
-pyxel.register("get_leaderboard", get_leaderboard);
+pyxel.register("get_leaderboard", getLeaderboard);

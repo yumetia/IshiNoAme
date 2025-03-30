@@ -1,5 +1,4 @@
 # app.py
-from curses import KEY_BACKSPACE
 import pyxel # type: ignore
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE,LEADERBOARD_SCENE,NAME_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
@@ -41,7 +40,7 @@ class App:
         if self.is_colliding:
             return
 
-        self.score += 10
+        self.score += 1
 
         if self.score>self.step_speed:
             self.step_speed+=30 
@@ -132,3 +131,4 @@ class App:
 
         elif self.current_scene == LEADERBOARD_SCENE:
             draw_leaderboard(self.leaderboard)
+
