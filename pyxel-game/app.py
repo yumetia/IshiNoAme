@@ -68,7 +68,6 @@ class App:
         # Si on n'a pas encore récupéré le leaderboard, on le récupère une seule fois.
         if not hasattr(self, 'leaderboard_fetched'):
             try:
-                from js import pyxel  # type: ignore
                 leaderboard_data = pyxel.call("get_leaderboard")
                 if leaderboard_data:
                     self.leaderboard = leaderboard_data
@@ -79,11 +78,11 @@ class App:
                 print("Erreur récupération leaderboard depuis JS:", e)
                 self.leaderboard = [("Erreur JS", 0)]
                 self.leaderboard_fetched = True
-
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
             # Réinitialise le flag pour pouvoir rafraîchir la prochaine fois.
             del self.leaderboard_fetched
+
 
 
     
