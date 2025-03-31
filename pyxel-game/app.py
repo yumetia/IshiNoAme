@@ -65,19 +65,26 @@ class App:
                 self.stones.remove(stone)
 
     def update_leaderboard_scene(self):
-        try:
-            from js import pyxel # type: ignore
-            leaderboard_data = pyxel.call("get_leaderboard")
-            if leaderboard_data:
-                self.leaderboard = leaderboard_data
-            else:
-                self.leaderboard = [("No data", 0)]
-        except Exception as e:
-            print("Erreur récupération leaderboard depuis JS:", e)
-            self.leaderboard = [("Erreur JS", 0)]
-            
+        # Si on n'a pas encore récupéré le leaderboard, on le récupère une seule fois.
+        if not hasattr(self, 'leaderboard_fetched'):
+            try:
+                from js import pyxel  # type: ignore
+                leaderboard_data = pyxel.call("get_leaderboard")
+                if leaderboard_data:
+                    self.leaderboard = leaderboard_data
+                else:
+                    self.leaderboard = [("No data", 0)]
+                self.leaderboard_fetched = True
+            except Exception as e:
+                print("Erreur récupération leaderboard depuis JS:", e)
+                self.leaderboard = [("Erreur JS", 0)]
+                self.leaderboard_fetched = True
+
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
+            # Réinitialise le flag pour pouvoir rafraîchir la prochaine fois.
+            del self.leaderboard_fetched
+
 
     
     def update_name_scene(self):
@@ -125,7 +132,7 @@ class App:
                 pyxel.cls(pyxel.COLOR_DARK_BLUE)
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
-            pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_GREEN)
+            pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_RED)
             if self.is_colliding:
                 self.game_over_timer -= 1
                 draw_game_over()
