@@ -12,7 +12,7 @@ class App:
         pyxel.load("my_resource.pyxres")
         self.current_scene = NAME_SCENE
         self.score = 0
-        self.step_speed = 40
+        self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
 
@@ -24,8 +24,9 @@ class App:
         self.score = 0
         self.is_colliding = False
         self.game_over_timer = 60
-        self.step_speed = 40
+        self.step_speed = 50
         self.stone_speed = STONE_SPEED
+        self.stone_interval = STONE_INTERVAL
 
         self.player = Player()  
         self.stones = []
@@ -45,10 +46,10 @@ class App:
         self.score += 1
 
         if self.score>self.step_speed:
-            self.step_speed+=40 
-            if self.score<3000:
+            self.step_speed+=50 
+            if self.score<2800:
                 self.stone_speed += 0.1
-            elif self.stone_interval > 5:            
+            elif self.stone_interval > 7:            
                 self.stone_interval-= 1
 
         self.player.move()
@@ -66,6 +67,7 @@ class App:
                 self.stones.remove(stone)
 
     def update_leaderboard_scene(self):
+        # a regler 
         # get the leaderboard once
         if not hasattr(self, 'leaderboard_fetched'):
             try:
@@ -129,7 +131,7 @@ class App:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
             if self.score>3000:
-                pyxel.cls(pyxel.COLOR_DARK_BLUE)
+                pyxel.cls(pyxel.COLOR_GRAY)
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
             pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_RED)
