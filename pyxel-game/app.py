@@ -12,7 +12,7 @@ class App:
         pyxel.load("my_resource.pyxres")
         self.current_scene = NAME_SCENE
         self.score = 0
-        self.step_speed = 30
+        self.step_speed = 40
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
 
@@ -24,6 +24,7 @@ class App:
         self.score = 0
         self.is_colliding = False
         self.game_over_timer = 60
+        self.step_speed = 40
         self.stone_speed = STONE_SPEED
 
         self.player = Player()  
@@ -44,9 +45,9 @@ class App:
         self.score += 1
 
         if self.score>self.step_speed:
-            self.step_speed+=30 
+            self.step_speed+=40 
             if self.score<3000:
-                self.stone_speed += 0.05
+                self.stone_speed += 0.1
             elif self.stone_interval > 5:            
                 self.stone_interval-= 1
 
