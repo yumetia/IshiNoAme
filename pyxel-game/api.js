@@ -38,5 +38,8 @@ function getLeaderboard(){
   return pyxelLeaderboardData;
 }
 
+
+
 fetchLeaderboard();
 pyxel.register("get_leaderboard", getLeaderboard);
+
