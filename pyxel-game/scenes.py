@@ -2,11 +2,6 @@
 import pyxel # type: ignore
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
-
-def draw_name_scene(username):
-    pyxel.cls(0)
-    pyxel.text(SCREEN_WIDTH // 10 , SCREEN_HEIGHT // 5, f'Your name:{username}' , pyxel.COLOR_WHITE)
-
 def draw_start_scene():
     pyxel.blt(0, 0, 0, 32, 0, 160, 120)
     

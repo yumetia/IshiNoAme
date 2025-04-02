@@ -1,22 +1,20 @@
 # app.py
-import pyxel # type: ignore
+import pyxel  # type: ignore
 
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE,LEADERBOARD_SCENE,NAME_SCENE, STONE_SPEED,PLAY_SCREEN_COLOR
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
-from scenes import draw_name_scene, draw_start_scene, draw_game_over, draw_leaderboard
+from scenes import draw_start_scene, draw_game_over, draw_leaderboard
 
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
-        self.current_scene = NAME_SCENE
+        self.current_scene = START_SCENE
         self.score = 0
         self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
-
-        self.username = ""
 
         pyxel.run(self.update, self.draw)
 
@@ -28,7 +26,7 @@ class App:
         self.stone_speed = STONE_SPEED
         self.stone_interval = STONE_INTERVAL
 
-        self.player = Player()  
+        self.player = Player()
         self.stones = []
         self.current_scene = PLAY_SCENE
 
@@ -37,20 +35,23 @@ class App:
             self.reset_play_scene()
         elif pyxel.btnp(pyxel.KEY_L):
             self.current_scene = LEADERBOARD_SCENE
-            
 
     def update_play_scene(self):
         if self.is_colliding:
+            try:
+                pyxel.call("sendScore", self.username, self.score)
+            except Exception as e:
+                print("Erreur JS sendScore:", e)
             return
 
         self.score += 1
 
-        if self.score>self.step_speed:
-            self.step_speed+=50 
-            if self.score<2800:
+        if self.score > self.step_speed:
+            self.step_speed += 50
+            if self.score < 2800:
                 self.stone_speed += 0.1
-            elif self.stone_interval > 7:            
-                self.stone_interval-= 1
+            elif self.stone_interval > 7:
+                self.stone_interval -= 1
 
         self.player.move()
 
@@ -67,8 +68,6 @@ class App:
                 self.stones.remove(stone)
 
     def update_leaderboard_scene(self):
-        # a regler 
-        # get the leaderboard once
         if not hasattr(self, 'leaderboard_fetched'):
             try:
                 leaderboard_data = pyxel.call("get_leaderboard")
@@ -83,54 +82,34 @@ class App:
                 self.leaderboard_fetched = True
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
-            # reset the flag
             del self.leaderboard_fetched
 
-
-
-    
     def update_name_scene(self):
-        # Process regular keys to append characters
-        for attr in dir(pyxel):
-            if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
-                keycode = getattr(pyxel, attr)
-                if pyxel.btnp(keycode):
-                    try:
-                        self.username += chr(keycode)
-                    except ValueError:
-                        print("Key code does not correspond to a valid ASCII character.")
-        
-        # Process backspace (remove last character) once per update
-        if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
-            self.username = self.username[:-1]
-            print(self.username)
-        
-        # Process return key to change scene if the username is long enough
-        if pyxel.btnp(pyxel.KEY_RETURN) and len(self.username) > 2:
-            self.current_scene = START_SCENE
+        if not hasattr(self, 'username_retrieved'):
+            try:
+                self.username = pyxel.call("getUsername")
+                if len(self.username) > 2:
+                    self.current_scene = START_SCENE
+                    self.username_retrieved = True
+            except Exception as e:
+                print("Erreur récupération username depuis JS:", e)
 
-        
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
 
-        if self.current_scene == NAME_SCENE:
-            self.update_name_scene()
-        elif self.current_scene == START_SCENE:
+        if self.current_scene == START_SCENE:
             self.update_start_scene()
         elif self.current_scene == LEADERBOARD_SCENE:
             self.update_leaderboard_scene()
         elif self.current_scene == PLAY_SCENE:
             self.update_play_scene()
 
-      
     def draw(self):
-        if self.current_scene == NAME_SCENE:
-            draw_name_scene(self.username)
-        elif self.current_scene == START_SCENE:
+        if self.current_scene == START_SCENE:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
-            if self.score>3000:
+            if self.score > 3000:
                 pyxel.cls(pyxel.COLOR_GRAY)
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
@@ -147,4 +126,3 @@ class App:
 
         elif self.current_scene == LEADERBOARD_SCENE:
             draw_leaderboard(self.leaderboard)
-
