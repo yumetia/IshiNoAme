@@ -38,11 +38,11 @@ function getLeaderboard(){
   return pyxelLeaderboardData;
 }
 
+pyxel.register("get_leaderboard",getLeaderboard);
+
 
 fetchLeaderboard();
 pyxel.register("sendScore", (score) => {
   const username = pyxel.globals.username || "Anonymous";
   sendScore(username, score);
 });
-
-pyxel.register("get_leaderboard",getLeaderboard);
