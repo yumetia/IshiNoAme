@@ -15,6 +15,10 @@ class App:
         self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
+        try:
+            self.username = pyxel.globals.username
+        except AttributeError:
+            self.username = "Anonymous"
 
         pyxel.run(self.update, self.draw)
 
@@ -83,16 +87,6 @@ class App:
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
             del self.leaderboard_fetched
-
-    def update_name_scene(self):
-        if not hasattr(self, 'username_retrieved'):
-            try:
-                self.username = pyxel.call("getUsername")
-                if len(self.username) > 2:
-                    self.current_scene = START_SCENE
-                    self.username_retrieved = True
-            except Exception as e:
-                print("Erreur récupération username depuis JS:", e)
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):

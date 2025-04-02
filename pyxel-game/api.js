@@ -40,8 +40,9 @@ function getLeaderboard(){
 
 
 fetchLeaderboard();
-pyxel.register("send_score", (score) => {
+pyxel.register("sendScore", (score) => {
   const username = pyxel.globals.username || "Anonymous";
   sendScore(username, score);
 });
 
+pyxel.register("get_leaderboard",getLeaderboard);
