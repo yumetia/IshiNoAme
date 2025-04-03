@@ -46,8 +46,9 @@ class App:
         if self.is_colliding:
             try:
                 pyxel.call("sendScore", self.username, self.score)
-            except Exception as e:
-                print("Erreur JS sendScore:", e)
+            except AttributeError:
+                print(f"(Mode local) Score à envoyer : {self.username} -> {self.score}")
+
             return
 
         self.score += 1
@@ -84,7 +85,7 @@ class App:
                 self.leaderboard_fetched = True
             except Exception as e:
                 self.leaderboard = [("Erreur JS", 0)]
-                self.js_error = str(e)[:50]  # Limiter pour éviter le débordement d’écran
+                self.js_error = str(e)[:50]  
                 self.leaderboard_fetched = True
 
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
