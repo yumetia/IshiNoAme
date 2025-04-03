@@ -11,7 +11,7 @@ function sendScore(username, score) {
     .catch(e => console.error("Erreur POST:", e));
 }
 
-function fetchLeaderboard() {
+async function fetchLeaderboard() {
   return fetch(`${API_URL}/top`)
     .then(r => r.json())
     .then(data => {
