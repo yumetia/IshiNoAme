@@ -1,6 +1,6 @@
 # app.py
 import pyxel  # type: ignore
-import urequests as requests  # type: ignore # Pyxel Web (WASM)
+import requests  # type: ignore # Pyxel Web (WASM)
 API_URL = "https://ishinoame.onrender.com"
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
