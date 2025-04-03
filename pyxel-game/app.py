@@ -1,7 +1,15 @@
 # app.py
 import pyxel  # type: ignore
-import requests  # type: ignore # Pyxel Web (WASM)
+
 API_URL = "https://ishinoame.onrender.com"
+
+try:
+    from pyodide.http import pyfetch
+    import asyncio
+    IS_WEB = True
+except ImportError:
+    import requests
+    IS_WEB = False
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
@@ -17,7 +25,6 @@ class App:
         self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
-        self.js_error = None  
 
         try:
             self.username = pyxel.globals.username
@@ -33,7 +40,6 @@ class App:
         self.step_speed = 50
         self.stone_speed = STONE_SPEED
         self.stone_interval = STONE_INTERVAL
-
         self.player = Player()
         self.stones = []
         self.current_scene = PLAY_SCENE
@@ -46,17 +52,35 @@ class App:
 
     def update_play_scene(self):
         if self.is_colliding:
-            try:
-                response = requests.post(
-                    f"{API_URL}/submit-score",
-                    json={"username": self.username, "score": self.score},
-                    headers={"Content-Type": "application/json"}
-                )
-                print("Score envoyé:", response.json())
-            except Exception as e:
-                print("Erreur envoi score:", e)
-            return
+            if IS_WEB:
+                async def send_score():
+                    try:
+                        response = await pyfetch(
+                            url=f"{API_URL}/submit-score",
+                            method="POST",
+                            headers={"Content-Type": "application/json"},
+                            body=pyxel.dumps_json({
+                                "username": self.username,
+                                "score": self.score
+                            })
+                        )
+                        data = await response.json()
+                        print("Score envoyé (web):", data)
+                    except Exception as e:
+                        print("Erreur fetch (web):", e)
 
+                asyncio.ensure_future(send_score())
+            else:
+                try:
+                    response = requests.post(
+                        f"{API_URL}/submit-score",
+                        json={"username": self.username, "score": self.score},
+                        headers={"Content-Type": "application/json"}
+                    )
+                    print("Score envoyé (local):", response.json())
+                except Exception as e:
+                    print("Erreur envoi score (local):", e)
+            return
 
         self.score += 1
 
@@ -83,15 +107,26 @@ class App:
 
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
-            try:
-                response = requests.get(f"{API_URL}/top")
-                data = response.json()
-                self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
-            except Exception as e:
-                print("Erreur récupération leaderboard:", e)
-                self.leaderboard = [("Erreur", 0)]
-            self.leaderboard_fetched = True
-
+            if IS_WEB:
+                async def get_leaderboard():
+                    try:
+                        response = await pyfetch(f"{API_URL}/top")
+                        data = await response.json()
+                        self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
+                    except Exception as e:
+                        print("Erreur GET leaderboard (web):", e)
+                        self.leaderboard = [("Erreur", 0)]
+                    self.leaderboard_fetched = True
+                asyncio.ensure_future(get_leaderboard())
+            else:
+                try:
+                    response = requests.get(f"{API_URL}/top")
+                    data = response.json()
+                    self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
+                except Exception as e:
+                    print("Erreur GET leaderboard (local):", e)
+                    self.leaderboard = [("Erreur", 0)]
+                self.leaderboard_fetched = True
 
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
@@ -128,4 +163,4 @@ class App:
             self.player.draw()
 
         elif self.current_scene == LEADERBOARD_SCENE:
-            draw_leaderboard(self.leaderboard,self.js_error)
+            draw_leaderboard(self.leaderboard)
