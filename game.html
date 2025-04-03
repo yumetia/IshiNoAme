@@ -30,14 +30,21 @@
         })
         .catch((e) => console.error("Erreur GET:", e));
     }
+    const waitForPyxel = setInterval(() => {
+    if (typeof pyxel !== "undefined" && typeof pyxel.register === "function") {
+        clearInterval(waitForPyxel);
 
-    fetchLeaderboard().then(() => {
+        // Ensuite tu fais ça :
+        fetchLeaderboard().then(() => {
         pyxel.register("get_leaderboard", () => pyxelLeaderboardData);
         pyxel.register("sendScore", (username, score) => {
-        console.log("JS reçoit score:", username, score);
-        sendScore(username, score);
+            sendScore(username, score);
         });
-    });
+        console.log("✅ JS bridge Pyxel prêt !");
+        });
+    }
+    }, 100);
+
 </script>
 
 <script>
