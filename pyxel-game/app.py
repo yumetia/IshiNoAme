@@ -15,6 +15,8 @@ class App:
         self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
+        self.js_error = None  
+
         try:
             self.username = pyxel.globals.username
         except AttributeError:
@@ -81,9 +83,10 @@ class App:
                     self.leaderboard = [("No data", 0)]
                 self.leaderboard_fetched = True
             except Exception as e:
-                print("Erreur récupération leaderboard depuis JS:", e)
                 self.leaderboard = [("Erreur JS", 0)]
+                self.js_error = str(e)[:30]  # Limiter pour éviter le débordement d’écran
                 self.leaderboard_fetched = True
+
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
             del self.leaderboard_fetched
@@ -119,4 +122,4 @@ class App:
             self.player.draw()
 
         elif self.current_scene == LEADERBOARD_SCENE:
-            draw_leaderboard(self.leaderboard)
+            draw_leaderboard(self.leaderboard,self.js_error)

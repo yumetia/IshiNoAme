@@ -13,13 +13,17 @@ def draw_game_over():
 
 # leaderboard
 
-def draw_leaderboard(data):
+def draw_leaderboard(data, js_error=None):
     pyxel.cls(0)  
     pyxel.text(10, 10, "LEADERBOARD", pyxel.COLOR_WHITE)
-    # get the top 5 and print each one 
     y = 10
     for i,(username,score) in enumerate(data):
         pyxel.text(10,y+(10), f'{i} : {str(username)} {str(score)}',pyxel.COLOR_CYAN)
         y+=10
 
     pyxel.text(10, SCREEN_HEIGHT-(10), "Press ENTER to return", pyxel.COLOR_YELLOW)
+
+    if js_error:
+        pyxel.text(10, SCREEN_HEIGHT - 20, f"JS Error: {js_error}", pyxel.COLOR_RED)
+
+
