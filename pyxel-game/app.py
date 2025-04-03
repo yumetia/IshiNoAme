@@ -3,13 +3,10 @@ import pyxel  # type: ignore
 
 API_URL = "https://ishinoame.onrender.com"
 
-try:
-    from pyodide.http import pyfetch
-    import asyncio
-    IS_WEB = True
-except ImportError:
-    import requests
-    IS_WEB = False
+
+from pyodide.http import pyfetch
+import asyncio
+IS_WEB = True
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
