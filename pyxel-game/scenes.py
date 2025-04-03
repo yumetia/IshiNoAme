@@ -24,6 +24,6 @@ def draw_leaderboard(data, js_error=None):
     pyxel.text(10, SCREEN_HEIGHT-(10), "Press ENTER to return", pyxel.COLOR_YELLOW)
 
     if js_error:
-        pyxel.text(10, SCREEN_HEIGHT - 20, f"JS Error: {js_error}", pyxel.COLOR_RED)
+        pyxel.text(10, SCREEN_HEIGHT - 20, f"{js_error}", pyxel.COLOR_RED)
 
 
