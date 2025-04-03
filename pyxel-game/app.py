@@ -1,5 +1,7 @@
 # app.py
 import pyxel  # type: ignore
+import urequests as requests  # type: ignore # Pyxel Web (WASM)
+API_URL = "https://ishinoame.onrender.com"
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
@@ -45,11 +47,16 @@ class App:
     def update_play_scene(self):
         if self.is_colliding:
             try:
-                pyxel.call("sendScore", self.username, self.score)
-            except AttributeError:
-                print(f"(Mode local) Score à envoyer : {self.username} -> {self.score}")
-
+                response = requests.post(
+                    f"{API_URL}/submit-score",
+                    json={"username": self.username, "score": self.score},
+                    headers={"Content-Type": "application/json"}
+                )
+                print("Score envoyé:", response.json())
+            except Exception as e:
+                print("Erreur envoi score:", e)
             return
+
 
         self.score += 1
 
@@ -77,16 +84,14 @@ class App:
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
             try:
-                leaderboard_data = pyxel.call("get_leaderboard")
-                if leaderboard_data:
-                    self.leaderboard = leaderboard_data
-                else:
-                    self.leaderboard = [("No data", 0)]
-                self.leaderboard_fetched = True
+                response = requests.get(f"{API_URL}/top")
+                data = response.json()
+                self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
             except Exception as e:
-                self.leaderboard = [("Erreur JS", 0)]
-                self.js_error = str(e)[:50]  
-                self.leaderboard_fetched = True
+                print("Erreur récupération leaderboard:", e)
+                self.leaderboard = [("Erreur", 0)]
+            self.leaderboard_fetched = True
+
 
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
