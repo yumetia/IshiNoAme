@@ -13,7 +13,7 @@ def draw_game_over():
 
 # leaderboard
 
-def draw_leaderboard(data, js_error=None):
+def draw_leaderboard(data):
     pyxel.cls(0)  
     pyxel.text(10, 10, "LEADERBOARD", pyxel.COLOR_WHITE)
     y = 10
@@ -22,8 +22,5 @@ def draw_leaderboard(data, js_error=None):
         y+=10
 
     pyxel.text(10, SCREEN_HEIGHT-(10), "Press ENTER to return", pyxel.COLOR_YELLOW)
-
-    if js_error:
-        pyxel.text(10, SCREEN_HEIGHT - 20, f"{js_error}", pyxel.COLOR_RED)
 
 

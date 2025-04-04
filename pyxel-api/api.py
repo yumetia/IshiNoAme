@@ -5,6 +5,11 @@ from database import create_table, insert_player, update_score, get_top_players
 app = Flask(__name__)
 create_table()
 
+@app.route("/")
+def index():
+    return "API IshinoAme en ligne", 200
+
+
 @app.route("/submit-score", methods=["POST"])
 def submit_score():
     data = request.get_json()
