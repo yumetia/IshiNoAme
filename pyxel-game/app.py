@@ -67,16 +67,6 @@ class App:
                         print("Erreur fetch (web):", e)
 
                 asyncio.ensure_future(send_score())
-            else:
-                try:
-                    response = requests.post(
-                        f"{API_URL}/submit-score",
-                        json={"username": self.username, "score": self.score},
-                        headers={"Content-Type": "application/json"}
-                    )
-                    print("Score envoyé (local):", response.json())
-                except Exception as e:
-                    print("Erreur envoi score (local):", e)
             return
 
         self.score += 1
