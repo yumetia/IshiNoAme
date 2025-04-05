@@ -38,18 +38,24 @@
     }
 
     function startGame() {
-      const username = document.getElementById("username").value || "Anonymous";
-      localStorage.setItem("username", username); 
+    const username = document.getElementById("username").value || "Anonymous";
+    localStorage.setItem("username", username); 
+
+    const waitForPyxel = setInterval(() => {
+    if (typeof pyxel !== "undefined" && pyxel.globals) {
+      clearInterval(waitForPyxel);
       pyxel.globals.username = username;
 
-      document.body.innerHTML = ""; 
+      document.body.innerHTML = "";
 
-      // start game 
       const run = document.createElement("pyxel-run");
       run.setAttribute("root", "pyxel-game/");
-      run.setAttribute("name", "main.py");
+      run.setAttribute("name", "main.py"); // change si app.py
       document.body.appendChild(run);
     }
+  }, 100);
+}
+
   </script>
 </body>
 </html>
