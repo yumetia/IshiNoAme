@@ -143,6 +143,10 @@ class App:
                 self.game_over_timer -= 1
                 draw_game_over()
                 if self.game_over_timer < 30:
+                    if not hasattr(self, "score_sent"):
+                        self.score_sent = True
+                        asyncio.ensure_future(self.send_score())
+
                     self.current_scene = START_SCENE
                 return
             for stone in self.stones:
@@ -151,3 +155,20 @@ class App:
 
         elif self.current_scene == LEADERBOARD_SCENE:
             draw_leaderboard(self.leaderboard)
+            
+    async def send_score(self):
+        try:
+            response = await pyfetch(
+                url=f"{API_URL}/submit-score",
+                method="POST",
+                headers={"Content-Type": "application/json"},
+                body=pyxel.dumps_json({
+                    "username": self.username,
+                    "score": self.score
+                })
+            )
+            data = await response.json()
+            print("Score envoyé (web):", data)
+        except Exception as e:
+            print("Erreur fetch (web):", e)
+

@@ -16,11 +16,11 @@ def draw_game_over():
 def draw_leaderboard(data):
     pyxel.cls(0)  
     pyxel.text(10, 10, "LEADERBOARD", pyxel.COLOR_WHITE)
-    y = 10
-    for i,(username,score) in enumerate(data):
-        pyxel.text(10,y+(10), f'{i} : {str(username)} {str(score)}',pyxel.COLOR_CYAN)
-        y+=10
+    y = 30
+    for i, (username, score) in enumerate(data):
+        pyxel.text(10, y, f"{i+1}. {username} - {score}", pyxel.COLOR_CYAN)
+        y += 12
+    pyxel.text(10, SCREEN_HEIGHT - 10, "Press ENTER to return", pyxel.COLOR_YELLOW)
 
-    pyxel.text(10, SCREEN_HEIGHT-(10), "Press ENTER to return", pyxel.COLOR_YELLOW)
 
 
