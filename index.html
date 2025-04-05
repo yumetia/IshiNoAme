@@ -24,10 +24,13 @@
   </style>
 </head>
 <body>
-  <h1>Ishi No Ame</h1>
-  <p>Enter your name :</p>
-  <input type="text" id="username" placeholder="Ton pseudo" />
-  <button onclick="startGame()">Jouer</button>
+    <div id="form-container">
+        <h1>Ishi No Ame</h1>
+        <p>Enter your name :</p>
+        <input type="text" id="username" placeholder="Ton pseudo" />
+        <button onclick="startGame()">Play</button>
+      </div>
+      
 
   <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
   <script>
@@ -46,15 +49,17 @@
       clearInterval(waitForPyxel);
       pyxel.globals.username = username;
 
-      document.body.innerHTML = "";
+      // Masquer le formulaire sans supprimer tout
+      document.getElementById("form-container").style.display = "none";
 
       const run = document.createElement("pyxel-run");
       run.setAttribute("root", "pyxel-game/");
-      run.setAttribute("name", "main.py"); // change si app.py
+      run.setAttribute("name", "main.py");
       document.body.appendChild(run);
     }
   }, 100);
 }
+
 
   </script>
 </body>
