@@ -24,11 +24,6 @@ class App:
         self.leaderboard = []
         self.username = ""
 
-        try:
-            self.username = pyxel.globals.username
-        except AttributeError:
-            self.username = "Anonymous"
-
         pyxel.run(self.update, self.draw)
         
     def update_username_scene(self):
