@@ -1,5 +1,7 @@
 # app.py
 import pyxel  # type: ignore
+import json
+
 
 API_URL = "https://ishinoame.onrender.com"
 
@@ -73,7 +75,7 @@ class App:
                             url=f"{API_URL}/submit-score",
                             method="POST",
                             headers={"Content-Type": "application/json"},
-                            body=pyxel.dumps_json({
+                            body=json.dumps({
                                 "username": self.username,
                                 "score": self.score
                             })
