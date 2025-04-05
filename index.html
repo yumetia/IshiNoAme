@@ -24,41 +24,21 @@
   </style>
 </head>
 <body>
-  <div id="form-container">
-    <h1>Ishi No Ame</h1>
-    <p>Enter your name :</p>
-    <input type="text" id="username" placeholder="Ton pseudo" />
-    <button id="start-button">Play</button>
-  </div>
-
-  <!-- Pyxel -->
-  <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+  <h1>Ishi No Ame</h1>
+  <p>Enter your name :</p>
+  <input type="text" id="username" placeholder="Ton pseudo" />
+  <button onclick="goToGame()">Play</button>
 
   <script>
-    window.onload = () => {
-      const input = document.getElementById("username");
-      const savedName = localStorage.getItem("username");
-      if (savedName) input.value = savedName;
+    // Restaure pseudo si déjà stocké
+    const saved = localStorage.getItem("username");
+    if (saved) document.getElementById("username").value = saved;
 
-      document.getElementById("start-button").onclick = () => {
-        const username = input.value || "Anonymous";
-        localStorage.setItem("username", username);
-
-        const waitForPyxel = setInterval(() => {
-          if (typeof pyxel !== "undefined" && pyxel.globals) {
-            clearInterval(waitForPyxel);
-
-            pyxel.globals.username = username;
-            document.getElementById("form-container").style.display = "none";
-
-            const run = document.createElement("pyxel-run");
-            run.setAttribute("root", "pyxel-game/");
-            run.setAttribute("name", "main.py"); 
-            document.body.appendChild(run);
-          }
-        }, 100);
-      };
-    };
+    function goToGame() {
+      const username = document.getElementById("username").value || "Anonymous";
+      localStorage.setItem("username", username);
+      window.location.href = "game.html";
+    }
   </script>
 </body>
 </html>
