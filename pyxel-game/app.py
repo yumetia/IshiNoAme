@@ -31,7 +31,7 @@ class App:
         for attr in dir(pyxel):
             if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
                 keycode = getattr(pyxel, attr)
-                if pyxel.btnp(keycode):
+                if pyxel.btnp(keycode) and len(self.username)< 20:
                     try:
                         self.username += chr(keycode)
                     except ValueError:
@@ -113,24 +113,15 @@ class App:
         if not hasattr(self, 'leaderboard_fetched'):
             if IS_WEB:
                 async def get_leaderboard():
-                    try:
-                        response = await pyfetch(f"{API_URL}/top")
-                        data = await response.json()
-                        self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
-                    except Exception as e:
-                        print("Erreur GET leaderboard (web):", e)
-                        self.leaderboard = [("Erreur", 0)]
+                    response = await pyfetch(f"{API_URL}/top")
+                    data = await response.json()
+                    self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
                     self.leaderboard_fetched = True
                 asyncio.ensure_future(get_leaderboard())
             else:
-                try:
-                    response = requests.get(f"{API_URL}/top")
-                    data = response.json()
-                    self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
-                except Exception as e:
-                    print("Erreur GET leaderboard (local):", e)
-                    self.leaderboard = [("Erreur", 0)]
-                self.leaderboard_fetched = True
+                response = requests.get(f"{API_URL}/top")
+                data = response.json()
+                self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
 
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
