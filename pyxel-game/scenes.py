@@ -2,11 +2,9 @@
 import pyxel # type: ignore
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
-def draw_username_scene(temp_username):
+def draw_username_scene(username):
     pyxel.cls(0)
-    pyxel.text(20, 30, "Entrez votre pseudo :", pyxel.COLOR_YELLOW)
-    pyxel.text(20, 50, temp_username + "_", pyxel.COLOR_WHITE)
-    pyxel.text(20, 100, "Appuyez sur ENTREE pour valider", pyxel.COLOR_GREEN)
+    pyxel.text(SCREEN_WIDTH // 10 , SCREEN_HEIGHT // 5, f'Your name:{username}' , pyxel.COLOR_WHITE)
     
 def draw_start_scene():
     pyxel.blt(0, 0, 0, 32, 0, 160, 120)
