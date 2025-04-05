@@ -5,24 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ishi No Ame - Game</title>
 </head>
-<body style="margin: 0; background: black;">
-
-  <!-- Pyxel engine -->
   <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
 
-  <script>
-    const username = localStorage.getItem("username") || "Anonymous";
-    const waitForPyxel = setInterval(() => {
-      if (typeof pyxel !== "undefined" && pyxel.globals) {
-        clearInterval(waitForPyxel);
-        pyxel.globals.username = username;
-
-        const run = document.createElement("pyxel-run");
-        run.setAttribute("root", "pyxel-game/");
-        run.setAttribute("name", "main.py"); // ou app.py si c’est le nom réel
-        document.body.appendChild(run);
-      }
-    }, 100);
-  </script>
+  <pyxel-run root="pyxel-game/" name="main.py"></pyxel-run>
 </body>
 </html>
