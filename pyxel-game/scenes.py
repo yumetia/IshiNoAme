@@ -42,11 +42,11 @@ def draw_leaderboard(data):
         if i == 0:
             color = pyxel.COLOR_YELLOW  
         elif i == 1:
-            color = pyxel.COLOR_LIGHT_GRAY 
+            color = pyxel.COLOR_GRAY 
         elif i == 2:
-            color = pyxel.COLOR_RED 
+            color = pyxel.COLOR_BROWN
         else:
-            color = pyxel.COLOR_CYAN
+            color = pyxel.COLOR_WHITE
 
         pyxel.text(box_x + 15, y, f"{rank} {entry}", color)
         y += 12
