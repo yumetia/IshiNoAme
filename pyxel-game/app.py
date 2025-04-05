@@ -8,10 +8,10 @@ from pyodide.http import pyfetch
 import asyncio
 IS_WEB = True
 
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE,NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
-from scenes import draw_start_scene, draw_game_over, draw_leaderboard
+from scenes import draw_username_scene,draw_start_scene, draw_game_over, draw_leaderboard
 
 class App:
     def __init__(self):
@@ -22,6 +22,7 @@ class App:
         self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
+        self.username = ""
 
         try:
             self.username = pyxel.globals.username
@@ -29,6 +30,23 @@ class App:
             self.username = "Anonymous"
 
         pyxel.run(self.update, self.draw)
+        
+    def update_username_scene(self):
+        if pyxel.btnp(pyxel.KEY_RETURN):
+            if hasattr(self, "temp_username") and self.temp_username.strip():
+                self.username = self.temp_username.strip()
+                self.current_scene = START_SCENE
+        elif pyxel.btnp(pyxel.KEY_BACKSPACE):
+            if hasattr(self, "temp_username"):
+                self.temp_username = self.temp_username[:-1]
+        else:
+            for i in range(32, 127):  # caractères imprimables
+                if pyxel.btnp(i):
+                    char = chr(i)
+                    if not hasattr(self, "temp_username"):
+                        self.temp_username = ""
+                    self.temp_username += char
+
 
     def reset_play_scene(self):
         self.score = 0
@@ -125,14 +143,20 @@ class App:
 
         if self.current_scene == START_SCENE:
             self.update_start_scene()
+        elif self.current_scene == NAME_SCENE:
+            self.update_username_scene()
         elif self.current_scene == LEADERBOARD_SCENE:
             self.update_leaderboard_scene()
         elif self.current_scene == PLAY_SCENE:
             self.update_play_scene()
+    
 
     def draw(self):
         if self.current_scene == START_SCENE:
             draw_start_scene()
+        elif self.current_scene == NAME_SCENE:
+            draw_username_scene(getattr(self, "temp_username", ""))
+
         elif self.current_scene == PLAY_SCENE:
             if self.score > 3000:
                 pyxel.cls(pyxel.COLOR_GRAY)
