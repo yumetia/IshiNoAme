@@ -1,57 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ishi no Ame - Enter Name</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ishi No Ame - Start</title>
   <style>
     body {
       font-family: sans-serif;
+      background: #111;
+      color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      background: #111;
-      color: white;
+      margin: 0;
     }
-
     input, button {
+      margin: 10px;
       padding: 10px;
-      margin-top: 15px;
-      font-size: 1.2rem;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      background: #00c4cc;
-      color: white;
+      font-size: 1.1rem;
     }
   </style>
 </head>
 <body>
-  <h1>Welcome to 石の雨 !</h1>
-  <input type="text" id="username" placeholder="Enter your name" autofocus />
+  <h1>Ishi No Ame</h1>
+  <p>Enter your name :</p>
+  <input type="text" id="username" placeholder="Ton pseudo" />
   <button onclick="startGame()">Jouer</button>
 
+  <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
   <script>
-    function startGame() {
-      const name = document.getElementById("username").value.trim();
-      if (name.length > 2) {
-        localStorage.setItem("username", name);
-        window.location.href = "game.html";
-      } else {
-        alert("at least 3 letters !");
-      }
+    // restore username if already defined
+    const savedName = localStorage.getItem("username");
+    if (savedName) {
+      document.getElementById("username").value = savedName;
     }
 
-    // same behavior for when pressing return key
-    document.getElementById("username").addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        startGame();
-      }
-    });
+    function startGame() {
+      const username = document.getElementById("username").value || "Anonymous";
+      localStorage.setItem("username", username); 
+      pyxel.globals.username = username;
+
+      document.body.innerHTML = ""; 
+
+      // start game 
+      const run = document.createElement("pyxel-run");
+      run.setAttribute("root", "pyxel-game/");
+      run.setAttribute("name", "main.py");
+      document.body.appendChild(run);
+    }
   </script>
 </body>
 </html>
