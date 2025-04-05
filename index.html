@@ -24,43 +24,41 @@
   </style>
 </head>
 <body>
-    <div id="form-container">
-        <h1>Ishi No Ame</h1>
-        <p>Enter your name :</p>
-        <input type="text" id="username" placeholder="Ton pseudo" />
-        <button onclick="startGame()">Play</button>
-      </div>
-      
+  <div id="form-container">
+    <h1>Ishi No Ame</h1>
+    <p>Enter your name :</p>
+    <input type="text" id="username" placeholder="Ton pseudo" />
+    <button id="start-button">Play</button>
+  </div>
 
+  <!-- Pyxel -->
   <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+
   <script>
-    // restore username if already defined
-    const savedName = localStorage.getItem("username");
-    if (savedName) {
-      document.getElementById("username").value = savedName;
-    }
+    window.onload = () => {
+      const input = document.getElementById("username");
+      const savedName = localStorage.getItem("username");
+      if (savedName) input.value = savedName;
 
-    function startGame() {
-    const username = document.getElementById("username").value || "Anonymous";
-    localStorage.setItem("username", username); 
+      document.getElementById("start-button").onclick = () => {
+        const username = input.value || "Anonymous";
+        localStorage.setItem("username", username);
 
-    const waitForPyxel = setInterval(() => {
-    if (typeof pyxel !== "undefined" && pyxel.globals) {
-      clearInterval(waitForPyxel);
-      pyxel.globals.username = username;
+        const waitForPyxel = setInterval(() => {
+          if (typeof pyxel !== "undefined" && pyxel.globals) {
+            clearInterval(waitForPyxel);
 
-      // Masquer le formulaire sans supprimer tout
-      document.getElementById("form-container").style.display = "none";
+            pyxel.globals.username = username;
+            document.getElementById("form-container").style.display = "none";
 
-      const run = document.createElement("pyxel-run");
-      run.setAttribute("root", "pyxel-game/");
-      run.setAttribute("name", "main.py");
-      document.body.appendChild(run);
-    }
-  }, 100);
-}
-
-
+            const run = document.createElement("pyxel-run");
+            run.setAttribute("root", "pyxel-game/");
+            run.setAttribute("name", "main.py"); 
+            document.body.appendChild(run);
+          }
+        }, 100);
+      };
+    };
   </script>
 </body>
 </html>
