@@ -27,20 +27,24 @@ class App:
         pyxel.run(self.update, self.draw)
         
     def update_username_scene(self):
-        if pyxel.btnp(pyxel.KEY_RETURN):
-            if hasattr(self, "temp_username") and self.temp_username.strip():
-                self.username = self.temp_username.strip()
-                self.current_scene = START_SCENE
-        elif pyxel.btnp(pyxel.KEY_BACKSPACE):
-            if hasattr(self, "temp_username"):
-                self.temp_username = self.temp_username[:-1]
-        else:
-            for i in range(32, 127):  # caractères imprimables
-                if pyxel.btnp(i):
-                    char = chr(i)
-                    if not hasattr(self, "temp_username"):
-                        self.temp_username = ""
-                    self.temp_username += char
+        # Process regular keys to append characters
+        for attr in dir(pyxel):
+            if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
+                keycode = getattr(pyxel, attr)
+                if pyxel.btnp(keycode):
+                    try:
+                        self.username += chr(keycode)
+                    except ValueError:
+                        print("Key code does not correspond to a valid ASCII character.")
+        
+        # Process backspace (remove last character) once per update
+        if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
+            self.username = self.username[:-1]
+            print(self.username)
+        
+        # Process return key to change scene if the username is long enough
+        if pyxel.btnp(pyxel.KEY_RETURN) and len(self.username) > 2:
+            self.current_scene = START_SCENE
 
 
     def reset_play_scene(self):
@@ -148,7 +152,7 @@ class App:
 
     def draw(self):
         if self.current_scene == NAME_SCENE:
-            draw_username_scene(getattr(self, "temp_username", ""))
+            draw_username_scene(self.username)
         elif self.current_scene == START_SCENE:
             draw_start_scene()
 
