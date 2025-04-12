@@ -10,7 +10,7 @@ from pyodide.http import pyfetch
 import asyncio
 IS_WEB = True
 
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE,NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
+from settings import STONE_INTERVAL,SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE,NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
 from scenes import draw_username_scene,draw_start_scene, draw_game_over, draw_leaderboard
