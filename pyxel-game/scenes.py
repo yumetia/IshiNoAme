@@ -2,9 +2,22 @@
 import pyxel # type: ignore
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
-def draw_username_scene(username):
+def draw_username_scene(username, available=None):
     pyxel.cls(0)
-    pyxel.text(SCREEN_WIDTH // 10 , SCREEN_HEIGHT // 5, f'Your name:{username}' , pyxel.COLOR_WHITE)
+    pyxel.text(SCREEN_WIDTH // 10, SCREEN_HEIGHT // 5, f"Your name: {username}", pyxel.COLOR_WHITE)
+
+    if len(username) > 2:
+        if available is None:
+            msg = "Checking availability..."
+            color = pyxel.COLOR_DARK_BLUE
+        elif available:
+            msg = "Username is available!"
+            color = pyxel.COLOR_GREEN
+        else:
+            msg = "Username already taken"
+            color = pyxel.COLOR_RED
+        pyxel.text(SCREEN_WIDTH // 10, SCREEN_HEIGHT // 5 + 10, msg, color)
+
     
 def draw_start_scene():
     pyxel.blt(0, 0, 0, 32, 0, 160, 120)

@@ -1,7 +1,7 @@
 # api.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from database import create_table, insert_player, update_score, get_top_players
+from database import create_table, insert_player, update_score, get_top_players,player_exists
 
 app = Flask(__name__)
 CORS(app)
@@ -21,15 +21,23 @@ def submit_score():
 
     if not username or not isinstance(score, int):
         return jsonify({"error": "Invalid data"}), 400
-
-    insert_player(username)
-    update_score(username, score)
-    return jsonify({"message": "Score updated"}), 200
+    elif player_exists(username):
+        insert_player(username)
+        update_score(username, score)
+        return jsonify({"message": "Score updated"}), 200
 
 @app.route("/top", methods=["GET"])
 def top():
     top_players = get_top_players()
     return jsonify(top_players), 200
+
+@app.route("/check-username/<username>", methods=["GET"])
+def check_username(username):
+    if player_exists(username):
+        return jsonify({"available": False}), 200
+    else:
+        return jsonify({"available": True}), 200
+
 
 import os
 

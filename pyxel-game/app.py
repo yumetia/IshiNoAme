@@ -10,7 +10,7 @@ from pyodide.http import pyfetch
 import asyncio
 IS_WEB = True
 
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, STONE_INTERVAL, START_SCENE,NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE,NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
 from stone import Stone
 from player import Player
 from scenes import draw_username_scene,draw_start_scene, draw_game_over, draw_leaderboard
@@ -25,28 +25,43 @@ class App:
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
         self.username = ""
+        self.username_available = None
+
 
         pyxel.run(self.update, self.draw)
         
     def update_username_scene(self):
-        # Process regular keys to append characters
         for attr in dir(pyxel):
             if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
                 keycode = getattr(pyxel, attr)
-                if pyxel.btnp(keycode) and len(self.username)< 20:
+                if pyxel.btnp(keycode) and len(self.username) < 20:
                     try:
                         self.username += chr(keycode)
+                        self.username_available = None 
                     except ValueError:
-                        print("Key code does not correspond to a valid ASCII character.")
-        
-        # Process backspace (remove last character) once per update
+                        print("Key code invalide")
+
         if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
             self.username = self.username[:-1]
-            print(self.username)
-        
-        # Process return key to change scene if the username is long enough
-        if pyxel.btnp(pyxel.KEY_RETURN) and len(self.username) > 2:
+            self.username_available = None
+
+        # check availability only if len > 2
+        if len(self.username) > 2 and self.username_available is None and IS_WEB:
+            async def check_availability():
+                try:
+                    response = await pyfetch(f"{API_URL}/check-username/{self.username}")
+                    data = await response.json()
+                    self.username_available = data["available"]
+                except Exception as e:
+                    print("Error fetch availability:", e)
+                    self.username_available = False  
+
+            asyncio.ensure_future(check_availability())
+
+        # if valid then ok
+        if pyxel.btnp(pyxel.KEY_RETURN) and self.username_available:
             self.current_scene = START_SCENE
+
 
 
     def reset_play_scene(self):
@@ -145,7 +160,7 @@ class App:
 
     def draw(self):
         if self.current_scene == NAME_SCENE:
-            draw_username_scene(self.username)
+            draw_username_scene(self.username,self.username_available)
         elif self.current_scene == START_SCENE:
             draw_start_scene()
 
