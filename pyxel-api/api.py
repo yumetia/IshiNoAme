@@ -21,10 +21,10 @@ def submit_score():
 
     if not username or not isinstance(score, int):
         return jsonify({"error": "Invalid data"}), 400
-    elif player_exists(username):
-        insert_player(username)
-        update_score(username, score)
-        return jsonify({"message": "Score updated"}), 200
+    
+    insert_player(username)
+    update_score(username, score)
+    return jsonify({"message": "Score updated"}), 200
 
 @app.route("/top", methods=["GET"])
 def top():
