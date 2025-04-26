@@ -49,7 +49,7 @@ python main.py
 
 - **Additional sound effects** for collisions and interactions
 - **Neferupito animations** for smoother gameplay
-- **Online leaderboard system**
+- **Bonus,skins to dynamise the gameplay**
 
 📢 **Feel free to give feedback and contribute!** 🚀
 
