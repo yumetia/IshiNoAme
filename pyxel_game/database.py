@@ -9,8 +9,7 @@ def create_table():
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS players (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
+            username TEXT PRIMARY KEY,
             score INTEGER DEFAULT 0
         );
     """)

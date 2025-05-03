@@ -84,7 +84,6 @@ class App:
                         print("Score envoyé au serveur")
                     except Exception as e:
                         print("Erreur d'envoi:", e)
-
                 import asyncio
                 asyncio.ensure_future(send_score())
             else:
