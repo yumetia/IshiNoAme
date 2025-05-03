@@ -1,9 +1,10 @@
 # app.py
+from operator import itemgetter
 import pyxel
 
 from database import create_table, insert_player, update_score, get_top_players, player_exists
 from settings import STONE_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR,IS_WEB
-from stone import Stone
+from stone import Stone,Item
 from player import Player
 from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_leaderboard
 
@@ -11,7 +12,7 @@ if IS_WEB:
     import json
     from pyodide.http import pyfetch
 
-# ⚡ Crée la table locale si besoin
+# Create table if necessary
 if not IS_WEB:
     create_table()
 
@@ -57,8 +58,12 @@ class App:
         self.step_speed = 50
         self.stone_speed = STONE_SPEED
         self.stone_interval = STONE_INTERVAL
+        
         self.player = Player()
+        
         self.stones = []
+        self.items = []
+        
         self.current_scene = PLAY_SCENE
 
     def update_start_scene(self):
@@ -103,6 +108,9 @@ class App:
 
         if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
+            self.items.append(Item(pyxel.rndi(0,SCREEN_WIDTH - 6),0, self.stone_speed))
+        # elif pyxel.frame_count % self.stone_interval == 0:
+            # drop items but not frequently as the stones
 
         for stone in self.stones.copy():
             stone.update()
@@ -112,6 +120,13 @@ class App:
 
             if stone.y >= SCREEN_HEIGHT:
                 self.stones.remove(stone)
+        for item in self.items.copy():
+            item.update()
+            
+            if (self.player.x <= item.x <= self.player.x + 8) and (self.player.y <= item.y <= self.player.y + 8):
+                print("ok")
+            if item.y >= SCREEN_HEIGHT:
+                self.items.remove(item)
 
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
@@ -169,6 +184,8 @@ class App:
                 return
             for stone in self.stones:
                 stone.draw()
+            for item in self.items:
+                item.draw()
             self.player.draw()
         elif self.current_scene == LEADERBOARD_SCENE:
             draw_leaderboard(self.leaderboard)

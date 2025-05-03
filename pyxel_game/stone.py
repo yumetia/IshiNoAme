@@ -12,3 +12,15 @@ class Stone:
 
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 8, 0, 8, 8, pyxel.COLOR_BLACK)
+        
+class Item:
+    def __init__(self, x, y, speed):
+        self.x = x
+        self.y = y
+        self.speed = speed
+
+    def update(self):
+        self.y += self.speed
+
+    def draw(self):
+        pyxel.blt(self.x, self.y, 1, 0, 0, 8, 8, pyxel.COLOR_BLACK)
