@@ -2,14 +2,18 @@
 import pyxel
 
 from database import create_table, insert_player, update_score, get_top_players, player_exists
-from settings import STONE_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
+from settings import STONE_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR,IS_WEB
 from stone import Stone
 from player import Player
 from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_leaderboard
-from config import IS_WEB
+
+if IS_WEB:
+    import json
+    from pyodide.http import pyfetch
 
 # ⚡ Crée la table locale si besoin
-create_table()
+if not IS_WEB:
+    create_table()
 
 class App:
     def __init__(self):
@@ -21,7 +25,7 @@ class App:
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
         self.username = ""
-        self.username_available = True  # Tout username accepté en local
+        self.username_available = True  # Par défaut accepté en local
         pyxel.run(self.update, self.draw)
 
     def update_username_scene(self):
@@ -38,9 +42,13 @@ class App:
             self.username = self.username[:-1]
 
         if pyxel.btnp(pyxel.KEY_RETURN) and self.username:
-            if not player_exists(self.username):
-                insert_player(self.username)
-            self.current_scene = START_SCENE
+            if IS_WEB:
+                # (optionnel : vérifier username sur serveur)
+                self.current_scene = START_SCENE
+            else:
+                if not player_exists(self.username):
+                    insert_player(self.username)
+                self.current_scene = START_SCENE
 
     def reset_play_scene(self):
         self.score = 0
@@ -61,7 +69,26 @@ class App:
 
     def update_play_scene(self):
         if self.is_colliding:
-            update_score(self.username, self.score)
+            if IS_WEB:
+                async def send_score():
+                    try:
+                        await pyfetch(
+                            url="https://ishinoame.onrender.com/submit-score",
+                            method="POST",
+                            headers={"Content-Type": "application/json"},
+                            body=json.dumps({
+                                "username": self.username,
+                                "score": self.score
+                            })
+                        )
+                        print("Score envoyé au serveur")
+                    except Exception as e:
+                        print("Erreur d'envoi:", e)
+
+                import asyncio
+                asyncio.ensure_future(send_score())
+            else:
+                update_score(self.username, self.score)
             return
 
         self.score += 1
@@ -89,13 +116,27 @@ class App:
 
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
-            top_players = get_top_players()
-            self.leaderboard = [(row[0],row[1]) for row in top_players]
-            self.leaderboard_fetched = True
+            if IS_WEB:
+                async def get_leaderboard():
+                    try:
+                        response = await pyfetch("https://ishinoame.onrender.com/top")
+                        data = await response.json()
+                        self.leaderboard = [(entry["username"], entry["score"]) for entry in data]
+                        self.leaderboard_fetched = True
+                    except Exception as e:
+                        print("Erreur récupération leaderboard:", e)
+
+                import asyncio
+                asyncio.ensure_future(get_leaderboard())
+            else:
+                top_players = get_top_players()
+                self.leaderboard = [(row[0], row[1]) for row in top_players]
+                self.leaderboard_fetched = True
 
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
-            del self.leaderboard_fetched
+            if hasattr(self, 'leaderboard_fetched'):
+                del self.leaderboard_fetched
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):
