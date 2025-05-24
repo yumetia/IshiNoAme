@@ -11,9 +11,8 @@ from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_l
 if IS_WEB:
     import json
     from pyodide.http import pyfetch
-
 # Create table if necessary
-if not IS_WEB:
+else:
     create_table()
 
 class App:
@@ -108,7 +107,8 @@ class App:
 
         if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
-            self.items.append(Item(pyxel.rndi(0,SCREEN_WIDTH - 6),0, self.stone_speed))
+        if pyxel.frame_count % 500 == 0:
+            self.items.append(Item(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
         # elif pyxel.frame_count % self.stone_interval == 0:
             # drop items but not frequently as the stones
 
@@ -120,12 +120,14 @@ class App:
 
             if stone.y >= SCREEN_HEIGHT:
                 self.stones.remove(stone)
+        # items
         for item in self.items.copy():
             item.update()
             
             if (self.player.x <= item.x <= self.player.x + 8) and (self.player.y <= item.y <= self.player.y + 8):
                 print("ok")
             if item.y >= SCREEN_HEIGHT:
+                print(self.items)
                 self.items.remove(item)
 
     def update_leaderboard_scene(self):
@@ -172,7 +174,7 @@ class App:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
             if self.score > 3000:
-                pyxel.cls(pyxel.COLOR_GRAY)
+                pyxel.cls(0)
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
             pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_RED)
@@ -184,6 +186,7 @@ class App:
                 return
             for stone in self.stones:
                 stone.draw()
+            
             for item in self.items:
                 item.draw()
             self.player.draw()
