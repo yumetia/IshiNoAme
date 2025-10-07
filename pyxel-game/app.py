@@ -15,7 +15,7 @@ else:
     create_table()
 
 class App:
-    def __init__(self):
+    def __init__(self,auto_run=True):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
         self.current_scene = NAME_SCENE
@@ -24,8 +24,9 @@ class App:
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
         self.username = ""
-        self.username_available = True # locally accepted
-        pyxel.run(self.update, self.draw)
+        self.username_available = True # locally accepted\
+        if auto_run:
+            pyxel.run(self.update, self.draw)
 
     def update_username_scene(self):
         for attr in dir(pyxel):
