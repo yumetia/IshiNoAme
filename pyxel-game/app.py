@@ -1,19 +1,18 @@
 # app.py
-import pyxel  # type: ignore
-import json
+import pyxel
 
-
-API_URL = "https://ishinoame.onrender.com"
-
-
-from pyodide.http import pyfetch
-import asyncio
-IS_WEB = True
-
-from settings import STONE_INTERVAL,SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE,NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR
-from stone import Stone
+from database import create_table, insert_player, update_score, get_top_players, player_exists
+from settings import STONE_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR,IS_WEB
+from stone import Stone,Item
 from player import Player
-from scenes import draw_username_scene,draw_start_scene, draw_game_over, draw_leaderboard
+from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_leaderboard
+
+if IS_WEB:
+    import json
+    from pyodide.http import pyfetch
+# Create table if necessary
+else:
+    create_table()
 
 class App:
     def __init__(self):
@@ -25,44 +24,30 @@ class App:
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
         self.username = ""
-        self.username_available = None
-
-
+        self.username_available = True # locally accepted
         pyxel.run(self.update, self.draw)
-        
+
     def update_username_scene(self):
         for attr in dir(pyxel):
             if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
                 keycode = getattr(pyxel, attr)
                 if pyxel.btnp(keycode) and len(self.username) < 20:
+                    #######
                     try:
                         self.username += chr(keycode)
-                        self.username_available = None 
                     except ValueError:
                         print("Key code invalide")
 
         if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
             self.username = self.username[:-1]
-            self.username_available = None
 
-        # check availability only if len > 2
-        if len(self.username) > 2 and self.username_available is None and IS_WEB:
-            async def check_availability():
-                try:
-                    response = await pyfetch(f"{API_URL}/check-username/{self.username}")
-                    data = await response.json()
-                    self.username_available = data["available"]
-                except Exception as e:
-                    print("Error fetch availability:", e)
-                    self.username_available = False  
-
-            asyncio.ensure_future(check_availability())
-
-        # if valid then ok
-        if pyxel.btnp(pyxel.KEY_RETURN) and self.username_available:
-            self.current_scene = START_SCENE
-
-
+        if pyxel.btnp(pyxel.KEY_RETURN) and self.username:
+            if IS_WEB:
+                self.current_scene = START_SCENE
+            else:
+                if not player_exists(self.username):
+                    insert_player(self.username)
+                self.current_scene = START_SCENE
 
     def reset_play_scene(self):
         self.score = 0
@@ -71,8 +56,12 @@ class App:
         self.step_speed = 50
         self.stone_speed = STONE_SPEED
         self.stone_interval = STONE_INTERVAL
+        
         self.player = Player()
+        
         self.stones = []
+        self.items = []
+        
         self.current_scene = PLAY_SCENE
 
     def update_start_scene(self):
@@ -86,8 +75,8 @@ class App:
             if IS_WEB:
                 async def send_score():
                     try:
-                        response = await pyfetch(
-                            url=f"{API_URL}/submit-score",
+                        await pyfetch(
+                            url="https://ishinoame.onrender.com/submit-score",
                             method="POST",
                             headers={"Content-Type": "application/json"},
                             body=json.dumps({
@@ -95,12 +84,13 @@ class App:
                                 "score": self.score
                             })
                         )
-                        data = await response.json()
-                        print("Score envoyé (web):", data)
+                        print("Score envoyé au serveur")
                     except Exception as e:
-                        print("Erreur fetch (web):", e)
-
+                        print("Erreur d'envoi:", e)
+                import asyncio
                 asyncio.ensure_future(send_score())
+            else:
+                update_score(self.username, self.score)
             return
 
         self.score += 1
@@ -116,6 +106,10 @@ class App:
 
         if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
+        if pyxel.frame_count % 500 == 0:
+            self.items.append(Item(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
+        # elif pyxel.frame_count % self.stone_interval == 0:
+            # drop items but not frequently as the stones
 
         for stone in self.stones.copy():
             stone.update()
@@ -125,24 +119,39 @@ class App:
 
             if stone.y >= SCREEN_HEIGHT:
                 self.stones.remove(stone)
+        # items
+        for item in self.items.copy():
+            item.update()
+            
+            if (self.player.x <= item.x <= self.player.x + 8) and (self.player.y <= item.y <= self.player.y + 8):
+                print("ok")
+            if item.y >= SCREEN_HEIGHT:
+                print(self.items)
+                self.items.remove(item)
 
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
             if IS_WEB:
                 async def get_leaderboard():
-                    response = await pyfetch(f"{API_URL}/top")
-                    data = await response.json()
-                    self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
-                    self.leaderboard_fetched = True
+                    try:
+                        response = await pyfetch("https://ishinoame.onrender.com/top")
+                        data = await response.json()
+                        self.leaderboard = [(entry["username"], entry["score"]) for entry in data]
+                        self.leaderboard_fetched = True
+                    except Exception as e:
+                        print("Erreur récupération leaderboard:", e)
+
+                import asyncio
                 asyncio.ensure_future(get_leaderboard())
             else:
-                response = requests.get(f"{API_URL}/top")
-                data = response.json()
-                self.leaderboard = data if isinstance(data, list) else [("No data", 0)]
+                top_players = get_top_players()
+                self.leaderboard = [(row[0], row[1]) for row in top_players]
+                self.leaderboard_fetched = True
 
         if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
-            del self.leaderboard_fetched
+            if hasattr(self, 'leaderboard_fetched'):
+                del self.leaderboard_fetched
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_ESCAPE):
@@ -156,17 +165,15 @@ class App:
             self.update_leaderboard_scene()
         elif self.current_scene == PLAY_SCENE:
             self.update_play_scene()
-    
 
     def draw(self):
         if self.current_scene == NAME_SCENE:
-            draw_username_scene(self.username,self.username_available)
+            draw_username_scene(self.username, self.username_available)
         elif self.current_scene == START_SCENE:
             draw_start_scene()
-
         elif self.current_scene == PLAY_SCENE:
             if self.score > 3000:
-                pyxel.cls(pyxel.COLOR_GRAY)
+                pyxel.cls(0)
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
             pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_RED)
@@ -178,8 +185,9 @@ class App:
                 return
             for stone in self.stones:
                 stone.draw()
+            
+            for item in self.items:
+                item.draw()
             self.player.draw()
-
         elif self.current_scene == LEADERBOARD_SCENE:
             draw_leaderboard(self.leaderboard)
-
