@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 # api.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -29,7 +32,9 @@ def submit_score():
 @app.route("/top", methods=["GET"])
 def top():
     top_players = get_top_players()
-    return jsonify(top_players), 200
+    response = jsonify(top_players)
+    response_headers["Cache-Control"] = "no-store"
+    return response,200
 
 @app.route("/check-username/<username>", methods=["GET"])
 def check_username(username):
