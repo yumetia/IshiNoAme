@@ -81,7 +81,7 @@ class App:
                     async def send_score():
                         try:
                             await pyfetch(
-                                url="https://ishinoame.onrender.com/submit-score",
+                                "https://ishinoame.onrender.com/submit-score",
                                 method="POST",
                                 headers={"Content-Type": "application/json"},
                                 body=json.dumps({
@@ -141,7 +141,7 @@ class App:
                     try:
                         response = await pyfetch("https://ishinoame.onrender.com/top")
                         data = await response.json()
-                        self.leaderboard = [(entry["username"], entry["score"]) for entry in data]
+                        self.leaderboard = [(entry[0], entry[1]) for entry in data]
                         self.leaderboard_fetched = True
                     except Exception as e:
                         print("Erreur récupération leaderboard:", e)
