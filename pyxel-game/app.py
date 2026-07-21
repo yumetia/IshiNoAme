@@ -53,6 +53,8 @@ class App:
     def reset_play_scene(self):
         self.score = 0
         self.is_colliding = False
+        self.score_submitted = False 
+
         self.game_over_timer = 60
         self.step_speed = 50
         self.stone_speed = STONE_SPEED
@@ -73,25 +75,27 @@ class App:
 
     def update_play_scene(self):
         if self.is_colliding:
-            if IS_WEB:
-                async def send_score():
-                    try:
-                        await pyfetch(
-                            url="https://ishinoame.onrender.com/submit-score",
-                            method="POST",
-                            headers={"Content-Type": "application/json"},
-                            body=json.dumps({
-                                "username": self.username,
-                                "score": self.score
-                            })
-                        )
-                        print("Score envoyé au serveur")
-                    except Exception as e:
-                        print("Erreur d'envoi:", e)
-                import asyncio
-                asyncio.ensure_future(send_score())
-            else:
-                update_score(self.username, self.score)
+            if not self.score_submitted:
+                self.score_submitted = True
+                if IS_WEB:
+                    async def send_score():
+                        try:
+                            await pyfetch(
+                                url="https://ishinoame.onrender.com/submit-score",
+                                method="POST",
+                                headers={"Content-Type": "application/json"},
+                                body=json.dumps({
+                                    "username": self.username,
+                                    "score": self.score
+                                })
+                            )
+                            print("Score envoyé au serveur")
+                        except Exception as e:
+                            print("Erreur d'envoi:", e)
+                    import asyncio
+                    asyncio.ensure_future(send_score())
+                else:
+                    update_score(self.username, self.score)
             return
 
         self.score += 1
