@@ -136,13 +136,13 @@ class App:
 
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
+            self.leaderboard_fetched = True
             if IS_WEB:
                 async def get_leaderboard():
                     try:
                         response = await pyfetch("https://ishinoame.onrender.com/top")
                         data = await response.json()
                         self.leaderboard = [(entry[0], entry[1]) for entry in data]
-                        self.leaderboard_fetched = True
                     except Exception as e:
                         print("Erreur récupération leaderboard:", e)
 
