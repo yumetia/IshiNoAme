@@ -4,7 +4,7 @@ load_dotenv()
 # api.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from database import create_table, insert_player, update_score, get_top_players,player_exists
+from database import create_table, insert_player, update_score, get_top_players, player_exists
 
 app = Flask(__name__)
 CORS(app)
