@@ -33,7 +33,6 @@ class App:
             if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
                 keycode = getattr(pyxel, attr)
                 if pyxel.btnp(keycode) and len(self.username) < 20:
-                    #######
                     try:
                         self.username += chr(keycode)
                     except ValueError:
@@ -44,7 +43,18 @@ class App:
 
         if pyxel.btnp(pyxel.KEY_RETURN) and self.username:
             if IS_WEB:
-                self.current_scene = START_SCENE
+                async def check_and_proceed():
+                    try:
+                        response = await pyfetch(f"https://ishinoame.onrender.com/check-username/{self.username}")
+                        data = await response.json()
+                        if data.get("available", True):
+                            self.current_scene = START_SCENE
+                        else:
+                            self.username_available = False
+                    except Exception as e:
+                        print("Erreur vérification username:", e)
+                import asyncio
+                asyncio.ensure_future(check_and_proceed())
             else:
                 if not player_exists(self.username):
                     insert_player(self.username)
