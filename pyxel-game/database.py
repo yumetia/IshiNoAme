@@ -1,8 +1,12 @@
 import sqlite3
+import hashlib
 
 
 def connect():
     return sqlite3.connect("leaderboard.db")
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def create_table():
     conn = connect()
@@ -10,6 +14,7 @@ def create_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS players (
             username TEXT PRIMARY KEY,
+            password_hash TEXT NOT NULL,
             score INTEGER DEFAULT 0
         );
     """)
@@ -26,13 +31,28 @@ def player_exists(username):
     conn.close()
     return exists
 
-def insert_player(username):
-    if not player_exists(username):
-        conn = connect()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO players (username) VALUES (?)", (username,))
-        conn.commit()
-        conn.close()
+def create_player(username, password):
+    if player_exists(username):
+        return False
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO players (username, password_hash) VALUES (?, ?)",
+        (username, hash_password(password))
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+def verify_password(username, password):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password_hash FROM players WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+    if result is None:
+        return False
+    return result[0] == hash_password(password)
 
 def update_score(username, new_score):
     conn = connect()
@@ -41,6 +61,10 @@ def update_score(username, new_score):
     # getting the current score
     cursor.execute("SELECT score FROM players WHERE username = ?", (username,))
     result = cursor.fetchone()
+
+    if result is None:
+        conn.close()
+        return
 
     current_score = result[0]
 

@@ -1,7 +1,7 @@
 # app.py
 import pyxel
 
-from database import create_table, insert_player, update_score, get_top_players, player_exists
+from database import create_table, update_score, get_top_players, player_exists
 from settings import STONE_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR,IS_WEB
 from stone import Stone,Item
 from player import Player
@@ -14,6 +14,9 @@ if IS_WEB:
 else:
     create_table()
 
+API_URL = "https://ishinoame.onrender.com"
+
+
 class App:
     def __init__(self,auto_run=True):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
@@ -23,42 +26,100 @@ class App:
         self.step_speed = 50
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
+
         self.username = ""
-        self.username_available = True # locally accepted\
+        self.password = ""
+        self.active_field = "username"  # "username" or "password"
+        self.auth_mode = "login"        # "login" or "register"
+        self.auth_message = ""          # feedback shown to the player
+        self.auth_pending = False       # true while a request is in flight
+        self.token = None                # JWT once authenticated
+
         if auto_run:
             pyxel.run(self.update, self.draw)
 
-    def update_username_scene(self):
+    def _type_into(self, buffer_name, max_len=20):
+        buffer = getattr(self, buffer_name)
         for attr in dir(pyxel):
-            if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN"):
+            if attr.startswith("KEY_") and attr not in ("KEY_BACKSPACE", "KEY_RETURN", "KEY_TAB"):
                 keycode = getattr(pyxel, attr)
-                if pyxel.btnp(keycode) and len(self.username) < 20:
+                if pyxel.btnp(keycode) and len(buffer) < max_len:
                     try:
-                        self.username += chr(keycode)
+                        buffer += chr(keycode)
                     except ValueError:
-                        print("Key code invalide")
+                        pass
+        setattr(self, buffer_name, buffer)
 
-        if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
-            self.username = self.username[:-1]
+    def update_username_scene(self):
+        if self.auth_pending:
+            return  # ignore input while a request is running
 
-        if pyxel.btnp(pyxel.KEY_RETURN) and self.username:
+        if pyxel.btnp(pyxel.KEY_TAB):
+            self.active_field = "password" if self.active_field == "username" else "username"
+            return
+
+        if self.active_field == "username":
+            self._type_into("username")
+            if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.username:
+                self.username = self.username[:-1]
+        else:
+            self._type_into("password")
+            if pyxel.btnp(pyxel.KEY_BACKSPACE) and self.password:
+                self.password = self.password[:-1]
+
+        if pyxel.btnp(pyxel.KEY_L):
+            # toggle between login and register mode
+            self.auth_mode = "register" if self.auth_mode == "login" else "login"
+            self.auth_message = ""
+
+        if pyxel.btnp(pyxel.KEY_RETURN) and self.username and self.password:
             if IS_WEB:
-                async def check_and_proceed():
+                self.auth_pending = True
+                self.auth_message = "Connexion..." if self.auth_mode == "login" else "Création du compte..."
+
+                async def do_auth():
+                    endpoint = "/login" if self.auth_mode == "login" else "/register"
                     try:
-                        response = await pyfetch(f"https://ishinoame.onrender.com/check-username/{self.username}")
+                        response = await pyfetch(
+                            f"{API_URL}{endpoint}",
+                            method="POST",
+                            headers={"Content-Type": "application/json"},
+                            body=json.dumps({
+                                "username": self.username,
+                                "password": self.password
+                            })
+                        )
                         data = await response.json()
-                        if data.get("available", True):
+                        if response.status in (200, 201) and "token" in data:
+                            self.token = data["token"]
                             self.current_scene = START_SCENE
+                            self.auth_message = ""
                         else:
-                            self.username_available = False
+                            self.auth_message = data.get("error", "Erreur inconnue")
                     except Exception as e:
-                        print("Erreur vérification username:", e)
+                        self.auth_message = f"Erreur: {e}"
+                    finally:
+                        self.auth_pending = False
+
                 import asyncio
-                asyncio.ensure_future(check_and_proceed())
+                asyncio.ensure_future(do_auth())
             else:
-                if not player_exists(self.username):
-                    insert_player(self.username)
-                self.current_scene = START_SCENE
+                # local/desktop mode: mirror the same login/register flow
+                from database import create_player, verify_password
+
+                if self.auth_mode == "register":
+                    if player_exists(self.username):
+                        self.auth_message = "Username already taken"
+                    else:
+                        create_player(self.username, self.password)
+                        self.current_scene = START_SCENE
+                        self.auth_message = ""
+                else:  # login
+                    if verify_password(self.username, self.password):
+                        self.current_scene = START_SCENE
+                        self.auth_message = ""
+                    else:
+                        self.auth_message = "Invalid username or password"
 
     def reset_play_scene(self):
         self.score = 0
@@ -91,11 +152,13 @@ class App:
                     async def send_score():
                         try:
                             await pyfetch(
-                                "https://ishinoame.onrender.com/submit-score",
+                                f"{API_URL}/submit-score",
                                 method="POST",
-                                headers={"Content-Type": "application/json"},
+                                headers={
+                                    "Content-Type": "application/json",
+                                    "Authorization": f"Bearer {self.token}"
+                                },
                                 body=json.dumps({
-                                    "username": self.username,
                                     "score": self.score
                                 })
                             )
@@ -123,8 +186,6 @@ class App:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
         if pyxel.frame_count % 500 == 0:
             self.items.append(Item(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
-        # elif pyxel.frame_count % self.stone_interval == 0:
-            # drop items but not frequently as the stones
 
         for stone in self.stones.copy():
             stone.update()
@@ -134,7 +195,7 @@ class App:
 
             if stone.y >= SCREEN_HEIGHT:
                 self.stones.remove(stone)
-        # items
+
         for item in self.items.copy():
             item.update()
             
@@ -150,7 +211,7 @@ class App:
             if IS_WEB:
                 async def get_leaderboard():
                     try:
-                        response = await pyfetch("https://ishinoame.onrender.com/top")
+                        response = await pyfetch(f"{API_URL}/top")
                         data = await response.json()
                         self.leaderboard = [(entry[0], entry[1]) for entry in data]
                     except Exception as e:
@@ -183,7 +244,13 @@ class App:
 
     def draw(self):
         if self.current_scene == NAME_SCENE:
-            draw_username_scene(self.username, self.username_available)
+            draw_username_scene(
+                self.username,
+                self.password,
+                self.active_field,
+                self.auth_mode,
+                self.auth_message
+            )
         elif self.current_scene == START_SCENE:
             draw_start_scene()
         elif self.current_scene == PLAY_SCENE:
