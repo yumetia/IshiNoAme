@@ -15,6 +15,7 @@ def create_table():
         CREATE TABLE IF NOT EXISTS players (
             id SERIAL PRIMARY KEY,
             username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
             score INTEGER DEFAULT 0
         );
     """)
@@ -33,16 +34,27 @@ def player_exists(username):
     conn.close()
     return exists
 
-def insert_player(username):
+def create_player(username, password_hash):
     conn = connect()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO players (username) VALUES (%s) ON CONFLICT (username) DO NOTHING",
-        (username,)
+        "INSERT INTO players (username, password_hash) VALUES (%s, %s) ON CONFLICT (username) DO NOTHING",
+        (username, password_hash)
     )
     conn.commit()
+    inserted = cursor.rowcount > 0
     cursor.close()
     conn.close()
+    return inserted
+
+def get_password_hash(username):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password_hash FROM players WHERE username = %s", (username,))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return result[0] if result else None
 
 def update_score(username, new_score):
     conn = connect()

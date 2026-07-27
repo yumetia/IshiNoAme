@@ -20,3 +20,4 @@ class Player:
 
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 16, 0, 16, 16, pyxel.COLOR_BLACK)
+
