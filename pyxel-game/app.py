@@ -207,13 +207,13 @@ class App:
 
         if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
-        elif pyxel.frame_count % 500 == 0:
+        elif pyxel.frame_count % 400 == 0:
             self.spawn_item_safely()
 
         for stone in self.stones.copy():
             stone.update()
 
-            if (self.player.x <= stone.x <= self.player.x + 8) and (self.player.y <= stone.y <= self.player.y + 8):
+            if (self.player.x <= stone.x <= self.player.x + 10) and (self.player.y <= stone.y <= self.player.y + 10):
                 self.is_colliding = True
 
             if stone.y >= SCREEN_HEIGHT:
