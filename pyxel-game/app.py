@@ -21,9 +21,9 @@ class App:
     def __init__(self,auto_run=True):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
-        self.current_scene = NAME_SCENE
+        self.current_scene = START_SCENE
         self.score = 0
-        self.step_speed = 50
+        self.step_speed = 60
         self.stone_interval = STONE_INTERVAL
         self.leaderboard = []
 
@@ -75,7 +75,7 @@ class App:
         if pyxel.btnp(pyxel.KEY_RETURN) and self.username and self.password:
             if IS_WEB:
                 self.auth_pending = True
-                self.auth_message = "Connexion..." if self.auth_mode == "login" else "Création du compte..."
+                self.auth_message = "logging in..." if self.auth_mode == "login" else "creating..."
 
                 async def do_auth():
                     endpoint = "/login" if self.auth_mode == "login" else "/register"
@@ -95,9 +95,9 @@ class App:
                             self.current_scene = START_SCENE
                             self.auth_message = ""
                         else:
-                            self.auth_message = data.get("error", "Erreur inconnue")
+                            self.auth_message = data.get("error", "Unknown error")
                     except Exception as e:
-                        self.auth_message = f"Erreur: {e}"
+                        self.auth_message = f"Error: {e}"
                     finally:
                         self.auth_pending = False
 
@@ -144,6 +144,35 @@ class App:
         elif pyxel.btnp(pyxel.KEY_L):
             self.current_scene = LEADERBOARD_SCENE
 
+    def update_difficulty(self):
+        # stone speed: starts low, increases smoothly, caps out
+        base_speed = 1.0
+        max_speed = 7.0
+        speed_ramp_score = 3000  # score at which speed reaches its cap
+
+        speed_progress = min(self.score / speed_ramp_score, 1.0)
+        self.stone_speed = base_speed + (max_speed - base_speed) * speed_progress
+
+        # stone interval: starts higher (slower spawns), decreases smoothly, floors out
+        base_interval = 7
+        min_interval = 7
+        interval_ramp_score = 4000  # score at which interval reaches its floor
+
+        interval_progress = min(self.score / interval_ramp_score, 1.0)
+        self.stone_interval = round(base_interval - (base_interval - min_interval) * interval_progress)
+
+    def spawn_item_safely(self):
+        min_gap = 20  # minimum horizontal distance from any current stone
+
+        candidate_x = pyxel.rndi(0, SCREEN_WIDTH - 6)
+
+        for stone in self.stones:
+            # only worry about stones still near the top (recently spawned, not yet passed)
+            if stone.y < 20 and abs(stone.x - candidate_x) < min_gap:
+                return  # too close to a stone, skip this spawn attempt
+
+        self.items.append(Item(candidate_x, 0, self.stone_speed))
+
     def update_play_scene(self):
         if self.is_colliding:
             if not self.score_submitted:
@@ -162,9 +191,9 @@ class App:
                                     "score": self.score
                                 })
                             )
-                            print("Score envoyé au serveur")
+                            print("Score sent to the server")
                         except Exception as e:
-                            print("Erreur d'envoi:", e)
+                            print("Error when sending:", e)
                     import asyncio
                     asyncio.ensure_future(send_score())
                 else:
@@ -172,20 +201,14 @@ class App:
             return
 
         self.score += 1
-
-        if self.score > self.step_speed:
-            self.step_speed += 50
-            if self.score < 2800:
-                self.stone_speed += 0.1
-            elif self.stone_interval > 7:
-                self.stone_interval -= 1
+        self.update_difficulty()
 
         self.player.move()
 
         if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
-        if pyxel.frame_count % 500 == 0:
-            self.items.append(Item(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
+        elif pyxel.frame_count % 500 == 0:
+            self.spawn_item_safely()
 
         for stone in self.stones.copy():
             stone.update()
