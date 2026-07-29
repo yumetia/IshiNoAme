@@ -21,7 +21,7 @@ class App:
     def __init__(self,auto_run=True):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
-        self.current_scene = START_SCENE
+        self.current_scene = NAME_SCENE
         self.score = 0
         self.step_speed = 60
         self.stone_interval = STONE_INTERVAL
