@@ -2,10 +2,11 @@
 import pyxel
 
 from database import create_table, update_score, get_top_players, player_exists
-from settings import STONE_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED, PLAY_SCREEN_COLOR,IS_WEB
+from settings import STONE_INTERVAL,ITEM_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED,ITEM_SPEED, PLAY_SCREEN_COLOR,IS_WEB
 from stone import Stone,Item
 from player import Player
-from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_leaderboard
+from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_bonus_message, draw_leaderboard
+from auth import do_auth
 
 if IS_WEB:
     import json
@@ -21,10 +22,13 @@ class App:
     def __init__(self,auto_run=True):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="石の雨")
         pyxel.load("my_resource.pyxres")
-        self.current_scene = START_SCENE
+        self.guest = False
+        self.current_scene = NAME_SCENE
+
         self.score = 0
         self.step_speed = 60
         self.stone_interval = STONE_INTERVAL
+        self.item_interval = ITEM_INTERVAL
         self.leaderboard = []
 
         self.username = ""
@@ -34,6 +38,9 @@ class App:
         self.auth_message = ""          # feedback shown to the player
         self.auth_pending = False       # true while a request is in flight
         self.token = None                # JWT once authenticated
+
+        self.active_bonus = False
+        self.bonus_timer = 0
 
         if auto_run:
             pyxel.run(self.update, self.draw)
@@ -52,8 +59,8 @@ class App:
 
     def update_username_scene(self):
         if self.auth_pending:
-            return  # ignore input while a request is running
-
+            return
+        
         if pyxel.btnp(pyxel.KEY_TAB):
             self.active_field = "password" if self.active_field == "username" else "username"
             return
@@ -68,43 +75,32 @@ class App:
                 self.password = self.password[:-1]
 
         if pyxel.btnp(pyxel.KEY_L):
-            # toggle between login and register mode
             self.auth_mode = "register" if self.auth_mode == "login" else "login"
             self.auth_message = ""
 
+        if pyxel.btnp(pyxel.KEY_LEFTBRACKET):
+            self.guest = True
+            self.username = "Guest"
+            self.current_scene = START_SCENE
+            return
         if pyxel.btnp(pyxel.KEY_RETURN) and self.username and self.password:
             if IS_WEB:
                 self.auth_pending = True
                 self.auth_message = "logging in..." if self.auth_mode == "login" else "creating..."
 
-                async def do_auth():
-                    endpoint = "/login" if self.auth_mode == "login" else "/register"
-                    try:
-                        response = await pyfetch(
-                            f"{API_URL}{endpoint}",
-                            method="POST",
-                            headers={"Content-Type": "application/json"},
-                            body=json.dumps({
-                                "username": self.username,
-                                "password": self.password
-                            })
-                        )
-                        data = await response.json()
-                        if response.status in (200, 201) and "token" in data:
-                            self.token = data["token"]
-                            self.current_scene = START_SCENE
-                            self.auth_message = ""
-                        else:
-                            self.auth_message = data.get("error", "Unknown error")
-                    except Exception as e:
-                        self.auth_message = f"Error: {e}"
-                    finally:
-                        self.auth_pending = False
+                async def run_auth():
+                    result = await do_auth(API_URL, self.auth_mode, self.username, self.password, pyfetch)
+                    if result["success"]:
+                        self.token = result["token"]
+                        self.current_scene = START_SCENE
+                        self.auth_message = ""
+                    else:
+                        self.auth_message = result["error"]
+                    self.auth_pending = False
 
                 import asyncio
-                asyncio.ensure_future(do_auth())
+                asyncio.ensure_future(run_auth())
             else:
-                # local/desktop mode: mirror the same login/register flow
                 from database import create_player, verify_password
 
                 if self.auth_mode == "register":
@@ -114,7 +110,7 @@ class App:
                         create_player(self.username, self.password)
                         self.current_scene = START_SCENE
                         self.auth_message = ""
-                else:  # login
+                else:
                     if verify_password(self.username, self.password):
                         self.current_scene = START_SCENE
                         self.auth_message = ""
@@ -124,11 +120,14 @@ class App:
     def reset_play_scene(self):
         self.score = 0
         self.is_colliding = False
-        self.score_submitted = False 
+        self.score_submitted = False
+        self.active_bonus = False
+        self.bonus_timer = 0
 
         self.game_over_timer = 60
         self.step_speed = 50
         self.stone_speed = STONE_SPEED
+        self.item_speed = ITEM_SPEED
         self.stone_interval = STONE_INTERVAL
         
         self.player = Player()
@@ -143,33 +142,32 @@ class App:
             self.reset_play_scene()
         elif pyxel.btnp(pyxel.KEY_L):
             self.current_scene = LEADERBOARD_SCENE
+        elif pyxel.btnp(pyxel.KEY_LEFTBRACKET):
+            self.current_scene = NAME_SCENE
+    
 
     def update_difficulty(self):
-        # stone speed: starts low, increases smoothly, caps out
         base_speed = 1.0
-        max_speed = 7.0
-        speed_ramp_score = 3000  # score at which speed reaches its cap
+        max_speed = 6.5
+        speed_ramp_score = 3000
 
         speed_progress = min(self.score / speed_ramp_score, 1.0)
         self.stone_speed = base_speed + (max_speed - base_speed) * speed_progress
 
-        # stone interval: starts higher (slower spawns), decreases smoothly, floors out
-        base_interval = 7
-        min_interval = 7
-        interval_ramp_score = 4000  # score at which interval reaches its floor
+        base_interval = 5
+        min_interval = 8
+        interval_ramp_score = 4000
 
         interval_progress = min(self.score / interval_ramp_score, 1.0)
         self.stone_interval = round(base_interval - (base_interval - min_interval) * interval_progress)
 
     def spawn_item_safely(self):
-        min_gap = 20  # minimum horizontal distance from any current stone
-
+        min_gap = 20
         candidate_x = pyxel.rndi(0, SCREEN_WIDTH - 6)
 
         for stone in self.stones:
-            # only worry about stones still near the top (recently spawned, not yet passed)
             if stone.y < 20 and abs(stone.x - candidate_x) < min_gap:
-                return  # too close to a stone, skip this spawn attempt
+                return
 
         self.items.append(Item(candidate_x, 0, self.stone_speed))
 
@@ -199,15 +197,18 @@ class App:
                 else:
                     update_score(self.username, self.score)
             return
+        
 
+        # setting/updating the score every frame
         self.score += 1
+
         self.update_difficulty()
 
         self.player.move()
 
         if pyxel.frame_count % self.stone_interval == 0:
             self.stones.append(Stone(pyxel.rndi(0, SCREEN_WIDTH - 6), 0, self.stone_speed))
-        elif pyxel.frame_count % 400 == 0:
+        elif pyxel.frame_count % self.item_interval == 0:
             self.spawn_item_safely()
 
         for stone in self.stones.copy():
@@ -221,12 +222,18 @@ class App:
 
         for item in self.items.copy():
             item.update()
-            
+
             if (self.player.x <= item.x <= self.player.x + 8) and (self.player.y <= item.y <= self.player.y + 8):
-                print("ok")
-            if item.y >= SCREEN_HEIGHT:
-                print(self.items)
+                self.active_bonus = True
+                self.bonus_timer = pyxel.frame_count + 20
                 self.items.remove(item)
+                continue
+
+            if item.y >= SCREEN_HEIGHT:
+                self.items.remove(item)
+
+        if self.active_bonus and pyxel.frame_count >= self.bonus_timer:
+            self.active_bonus = False
 
     def update_leaderboard_scene(self):
         if not hasattr(self, 'leaderboard_fetched'):
@@ -247,7 +254,7 @@ class App:
                 self.leaderboard = [(row[0], row[1]) for row in top_players]
                 self.leaderboard_fetched = True
 
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE):
+        if pyxel.btnp(pyxel.KEY_L) or pyxel.btnp(pyxel.KEY_SPACE):
             self.current_scene = START_SCENE
             if hasattr(self, 'leaderboard_fetched'):
                 del self.leaderboard_fetched
@@ -272,7 +279,8 @@ class App:
                 self.password,
                 self.active_field,
                 self.auth_mode,
-                self.auth_message
+                self.auth_message,
+                self.guest
             )
         elif self.current_scene == START_SCENE:
             draw_start_scene()
@@ -282,6 +290,10 @@ class App:
             else:
                 pyxel.cls(eval(PLAY_SCREEN_COLOR))
             pyxel.text(2, 2, f"{self.score}", pyxel.COLOR_RED)
+
+            if self.active_bonus:
+                draw_bonus_message()
+
             if self.is_colliding:
                 self.game_over_timer -= 1
                 draw_game_over()

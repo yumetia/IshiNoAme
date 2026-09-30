@@ -52,7 +52,7 @@ def token_required(f):
 
 @app.route("/")
 def index():
-    return "API IshinoAme en ligne", 200
+    return "API IshinoAme online", 200
 
 
 @app.route("/register", methods=["POST"])
@@ -67,7 +67,7 @@ def register():
     if player_exists(username):
         return jsonify({"error": "Username already taken"}), 409
 
-    password_hash = generate_password_hash(password)
+    password_hash = generate_password_hash(password, method="pbkdf2:sha256")
     created = create_player(username, password_hash)
     if not created:
         return jsonify({"error": "Username already taken"}), 409

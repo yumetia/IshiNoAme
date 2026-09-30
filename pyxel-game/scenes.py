@@ -2,7 +2,7 @@
 import pyxel # type: ignore
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
-def draw_username_scene(username, password, active_field, auth_mode, message):
+def draw_username_scene(username, password, active_field, auth_mode, message, guest):
     pyxel.cls(0)
 
     title = "REGISTER" if auth_mode == "register" else "LOGIN"
@@ -24,20 +24,27 @@ def draw_username_scene(username, password, active_field, auth_mode, message):
         pyxel.text(SCREEN_WIDTH // 10, SCREEN_HEIGHT // 4 + 28, message, pyxel.COLOR_RED)
 
     # instructions
-    footer_y = SCREEN_HEIGHT - 30
+    footer_y = SCREEN_HEIGHT - 40
     pyxel.text(SCREEN_WIDTH // 10, footer_y, "TAB: switch field", pyxel.COLOR_GRAY)
     pyxel.text(SCREEN_WIDTH // 10, footer_y + 10, f"L: switch to {'LOGIN' if auth_mode == 'register' else 'REGISTER'}", pyxel.COLOR_GRAY)
     pyxel.text(SCREEN_WIDTH // 10, footer_y + 20, "ENTER: submit", pyxel.COLOR_GRAY)
+    pyxel.text(SCREEN_WIDTH // 10, footer_y + 30, "[: Play as Guest", pyxel.COLOR_RED)
 
     
 def draw_start_scene():
     pyxel.blt(0, 0, 0, 32, 0, 160, 120)
-    
     pyxel.text(SCREEN_WIDTH // 10, SCREEN_HEIGHT // 10, "Click to Start", pyxel.COLOR_RED)
+    pyxel.text(SCREEN_WIDTH // 10, SCREEN_HEIGHT // 10 + (90), "Press [ to authenticate", pyxel.COLOR_LIME)
     pyxel.text(SCREEN_WIDTH // 10, SCREEN_HEIGHT // 10 + (100), "Press L to check leaderboard", pyxel.COLOR_YELLOW)
 
 def draw_game_over():
     pyxel.text(SCREEN_WIDTH // 2 - (20), SCREEN_HEIGHT // 2, "GAME OVER", pyxel.COLOR_RED)
+
+
+def draw_bonus_message():
+    message = ">_<"
+    message_x = (SCREEN_WIDTH - len(message) * 4) // 2
+    pyxel.text(message_x, SCREEN_HEIGHT // 6, message, pyxel.COLOR_PEACH)
 
 
 def draw_leaderboard(data):
@@ -76,7 +83,6 @@ def draw_leaderboard(data):
         y += 12
 
     # footer
-    footer = "Press ENTER to return"
+    footer = "Press L to return"
     footer_x = (SCREEN_WIDTH - len(footer) * 4) // 2
-    pyxel.text(footer_x, SCREEN_HEIGHT - 10, footer, pyxel.COLOR_GREEN)
-    
+    pyxel.text(footer_x, SCREEN_HEIGHT - 10, footer, pyxel.COLOR_WHITE)
