@@ -5,7 +5,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
 def connect():
-    return psycopg2.connect(DATABASE_URL, sslmode="require")
+    return psycopg2.connect(DATABASE_URL, sslmode=os.environ.get("DB_SSLMODE","require"))
 
 
 def create_table():
