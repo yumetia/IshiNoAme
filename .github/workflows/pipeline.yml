@@ -28,8 +28,8 @@ jobs:
       run:
         working-directory: pyxel-api
     steps:
-
       - uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
           python-version: "3.13"
       - run: pip install -r requirements.txt pytest
