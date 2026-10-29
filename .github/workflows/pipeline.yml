@@ -24,6 +24,7 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
       DB_SSLMODE: disable
+      SECRET_KEY: test-secret-key-not-for-production
     defaults:
       run:
         working-directory: pyxel-api
