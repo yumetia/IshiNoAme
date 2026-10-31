@@ -5,9 +5,18 @@ on:
     branches: [pipeline-testing]
 
 jobs:
-  # lint:
-  #   runs-on: ubuntu-24.04
-  #   defaults:
+  lint:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: pyxel-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ruff
+      - run: ruff check .
 
   test:
     runs-on: ubuntu-24.04
@@ -28,9 +37,11 @@ jobs:
       run:
         working-directory: pyxel-api
     steps:
-      - uses: actions/setup-python@v5
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyxel-api/requirements.txt
       - run: pip install -r requirements.txt pytest
       - run: pytest
