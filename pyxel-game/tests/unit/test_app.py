@@ -1,6 +1,5 @@
 
 
-from app import App
 from settings import NAME_SCENE, PLAY_SCENE
 
 

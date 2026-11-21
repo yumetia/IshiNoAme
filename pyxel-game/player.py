@@ -1,5 +1,6 @@
 import pyxel
-from settings import SCREEN_WIDTH,SCREEN_HEIGHT, PLAYER_SPEED
+from settings import PLAYER_SPEED, SCREEN_HEIGHT, SCREEN_WIDTH
+
 
 class Player:
     def __init__(self):

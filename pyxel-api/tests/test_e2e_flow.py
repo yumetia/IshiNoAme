@@ -12,8 +12,6 @@ def test_full_user_journey_register_login_submit_score_appears_on_leaderboard(cl
     # 1. Register
     register_response = client.post("/register", json={"username": username, "password": password})
     assert register_response.status_code == 201
-    token = register_response.get_json()["token"]
-
     # 2. Log in
     login_response = client.post("/login", json={"username": username, "password": password})
     assert login_response.status_code == 200

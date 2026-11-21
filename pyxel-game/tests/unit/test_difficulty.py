@@ -1,4 +1,3 @@
-from app import App
 
 def test_stone_speed_starts_at_base_score_zero(app):
     app.score = 0

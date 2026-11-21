@@ -2,6 +2,7 @@
 from player import Player
 from settings import PLAYER_SPEED
 
+
 def test_player_initial_position():
     p = Player()
     assert hasattr(p, "x")

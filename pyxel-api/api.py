@@ -1,16 +1,25 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # api.py
-import os
-import jwt
 import datetime
+import os
 from functools import wraps
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
 
-from database import create_table, create_player, get_password_hash, update_score, get_top_players, player_exists
+import jwt
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from database import (
+    create_player,
+    create_table,
+    get_password_hash,
+    get_top_players,
+    player_exists,
+    update_score,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -25,7 +34,7 @@ if not SECRET_KEY:
 def generate_token(username):
     payload = {
         "username": username,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=30)
+       "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
     }
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -123,6 +132,6 @@ def check_username(username):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", "5000"))
     app.run(host="0.0.0.0", port=port)
     

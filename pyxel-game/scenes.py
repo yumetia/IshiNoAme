@@ -1,6 +1,7 @@
 # scenes.py
-import pyxel # type: ignore
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+import pyxel  # type: ignore
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH
+
 
 def draw_username_scene(username, password, active_field, auth_mode, message, guest):
     pyxel.cls(0)

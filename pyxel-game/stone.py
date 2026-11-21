@@ -1,6 +1,7 @@
 # stone.py
 import pyxel
 
+
 class Stone:
     def __init__(self, x, y, speed):
         self.x = x

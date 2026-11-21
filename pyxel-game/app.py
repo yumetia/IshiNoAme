@@ -1,15 +1,34 @@
 # app.py
 import pyxel
-
-from database import create_table, update_score, get_top_players, player_exists
-from settings import STONE_INTERVAL,ITEM_INTERVAL, SCREEN_WIDTH, SCREEN_HEIGHT, START_SCENE, NAME_SCENE, PLAY_SCENE, LEADERBOARD_SCENE, STONE_SPEED,ITEM_SPEED, PLAY_SCREEN_COLOR,IS_WEB
-from stone import Stone,Item
-from player import Player
-from scenes import draw_username_scene, draw_start_scene, draw_game_over, draw_bonus_message, draw_leaderboard
 from auth import do_auth
+from database import create_table, get_top_players, player_exists, update_score
+from player import Player
+from scenes import (
+    draw_bonus_message,
+    draw_game_over,
+    draw_leaderboard,
+    draw_start_scene,
+    draw_username_scene,
+)
+from settings import (
+    IS_WEB,
+    ITEM_INTERVAL,
+    ITEM_SPEED,
+    LEADERBOARD_SCENE,
+    NAME_SCENE,
+    PLAY_SCENE,
+    PLAY_SCREEN_COLOR,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+    START_SCENE,
+    STONE_INTERVAL,
+    STONE_SPEED,
+)
+from stone import Item, Stone
 
 if IS_WEB:
     import json
+
     from pyodide.http import pyfetch
 # Create table if necessary
 else:
