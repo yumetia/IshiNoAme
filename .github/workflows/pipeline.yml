@@ -43,7 +43,7 @@ jobs:
       - run: pip install -r requirements.txt pytest
       - run: pytest
 
-  publis:
+  publish:
     needs: [lint, test]
     runs-on: ubuntu-24.04
     permissions:
@@ -69,17 +69,17 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   notify:
-    needs: [lint, test, publis]
+    needs: [lint, test, publish]
     if: always()
     runs-on: ubuntu-24.04
     steps:
       - uses: dawidd6/action-send-mail@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           to: ${{ secrets.MAIL_TO }}
+          from: IshiNoAme CI
           subject: "Pipeline ${{ github.ref_name }}"
           body: "lint ${{ needs.lint.result }}, test ${{ needs.test.result }}, publish ${{ needs.publish.result }}"
