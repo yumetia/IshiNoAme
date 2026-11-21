@@ -4,10 +4,16 @@ on:
   push:
     branches: [pipeline-testing]
 
+defaults:
+  run:
+    working-directory: pyxel-api
+
 jobs:
-  # lint:
-  #   runs-on: ubuntu-24.04
-  #   defaults:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx run ruff check --fix .
 
   test:
     runs-on: ubuntu-24.04
@@ -20,17 +26,59 @@ jobs:
           POSTGRES_DB: testdb
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
       DB_SSLMODE: disable
       SECRET_KEY: test-secret-key-not-for-production
-    defaults:
-      run:
-        working-directory: pyxel-api
     steps:
-      - uses: actions/setup-python@v5
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
       - run: pip install -r requirements.txt pytest
       - run: pytest
+
+  publish:
+    needs: [lint, test]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-api
+          tags: type=ref,event=branch
+      - uses: docker/build-push-action@v6
+        with:
+          context: pyxel-api
+          target: prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  notify:
+    needs: [lint, test, publish]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          subject: "Pipeline ${{ github.ref_name }}"
+          body: "lint ${{ needs.lint.result }}, test ${{ needs.test.result }}, publish ${{ needs.publish.result }}"

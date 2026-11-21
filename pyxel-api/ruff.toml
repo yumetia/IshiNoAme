@@ -1,0 +1,3 @@
+[lint.per-file-ignores]
+"api.py" = ["E402"]
+"conftest.py" = ["E402"]
