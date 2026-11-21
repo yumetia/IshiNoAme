@@ -69,7 +69,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   notify:
-    needs: [lint, test, publish]
+    needs: [lint, test, publis]
     if: always()
     runs-on: ubuntu-24.04
     steps:
