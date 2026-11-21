@@ -75,6 +75,7 @@ jobs:
     steps:
       - uses: dawidd6/action-send-mail@v3
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           server_address: smtp.gmail.com
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
