@@ -1,12 +1,12 @@
 # Ishi No Ame - 石の雨
 
-🎮 **Neferupito must dodge a Dragon Dive!**
+**Neferupito must dodge a Dragon Dive!**
 
-## 🚀 Overview
+##  Overview
 
 Ishi No Ame (*石の雨*, "Rain of Stones") is a minimalist arcade game developed with **Pyxel**. The player controls **Neferupito**, who must avoid a **Dragon Dive** falling from the sky and survive as long as possible!
 
-## 🕹️ Gameplay
+## Gameplay
 
 - **Start Screen**: Click to start the game.
 - **Game Phase**:
@@ -14,22 +14,22 @@ Ishi No Ame (*石の雨*, "Rain of Stones") is a minimalist arcade game develope
   - A **score counter** is displayed in the top-left corner and increases as long as you survive.
   - Collision = **Game Over**.
 
-## 🎨 Graphics & Features
+## Graphics & Features
 
 - **Custom pixel art sprites**.
 - **Smooth movement and collision detection**.
 
-## 🌐 Play Online
+## Play Online
 
 🔗 **Play the game here:** [Game Link](#)
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 - **Python** + **Pyxel**
 - **Pixel Art** for sprites
 - **Scene management** (Start Screen, Gameplay, Game Over)
 
-## 📥 Local Installation
+## Local Installation
 
 If you want to play locally:
 
@@ -45,11 +45,11 @@ pip install pyxel
 python main.py
 ```
 
-## 🔮 Future Improvements
+## Future Improvements
 
 - **Additional sound effects** for collisions and interactions
 - **Neferupito animations** for smoother gameplay
-- **Bonus,skins to dynamise the gameplay**
+- **Online leaderboard system**
 
 📢 **Feel free to give feedback and contribute!** 🚀
 
